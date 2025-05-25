@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetCare Pro | Manajemen Pet Shop</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .sidebar {
+            scrollbar-width: thin;
+        }
+        .dashboard-card {
+            transition: all 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Mobile sidebar toggle -->
+        <input type="checkbox" id="sidebar-toggle" class="peer hidden">
+        <label for="sidebar-toggle" class="fixed lg:hidden z-20 inset-0 bg-black/50 peer-checked:block hidden"></label>
+
+        <!-- Sidebar -->
+        <div class="flex flex-col w-64 bg-white border-r border-gray-200 lg:static fixed z-10 h-full -translate-x-full lg:translate-x-0 transition-transform peer-checked:translate-x-0">
+            <div class="flex items-center justify-center h-16 px-4 border-b border-gray-200">
+                <div class="flex items-center">
+                    <i class="fas fa-paw text-2xl text-indigo-600 mr-2"></i>
+                    <span class="text-xl font-semibold text-gray-800">PetCare Pro</span>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto sidebar">
+                <nav class="px-4 py-6">
+                    <div class="space-y-1">
+                        <a href="#" data-section="dashboard" class="flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-indigo-50 text-indigo-700 group">
+                            <i class="fas fa-chart-line mr-3 text-indigo-600"></i>
+                            Dashboard
+                        </a>
+                        <a href="#" data-section="products" class="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 group">
+                            <i class="fas fa-box-open mr-3 text-gray-500 group-hover:text-gray-700"></i>
+                            Produk
+                        </a>
+                        <a href="#" data-section="services" class="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 group">
+                            <i class="fas fa-spa mr-3 text-gray-500 group-hover:text-gray-700"></i>
+                            Layanan
+                        </a>
+                        <a href="#" data-section="transactions" class="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 group">
+                            <i class="fas fa-receipt mr-3 text-gray-500 group-hover:text-gray-700"></i>
+                            Transaksi
+                        </a>
+                        <a href="#" data-section="customers" class="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 group">
+                            <i class="fas fa-users mr-3 text-gray-500 group-hover:text-gray-700"></i>
+                            Pelanggan
+                        </a>
+                    </div>
+                </nav>
+            </div>
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <img class="h-8 w-8 rounded-full" src="https://ui-avatars.com/api/?name=Admin&background=indigo&color=fff" alt="Admin">
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-700">Admin</p>
+                        <p class="text-xs font-medium text-gray-500">petcare@example.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top navigation -->
+            <header class="bg-white shadow-sm">
+                <div class="flex items-center justify-between px-4 py-3">
+                    <div class="flex items-center">
+                        <label for="sidebar-toggle" class="lg:hidden mr-2 text-gray-600">
+                            <i class="fas fa-bars text-xl"></i>
+                        </label>
+                        <h1 class="text-lg font-semibold text-gray-800">Dashboard</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <button class="p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page content -->
+            <main class="flex-1 overflow-y-auto p-4 bg-gray-50">
+                <!-- Dashboard Section -->
+                <section id="dashboard-section" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="dashboard-card bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Total Produk</p>
+                                    <h3 id="total-products" class="mt-1 text-2xl font-semibold text-gray-900">0</h3>
+                                </div>
+                                <div class="p-3 rounded-lg bg-indigo-50 text-indigo-600">
+                                    <i class="fas fa-box-open text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dashboard-card bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Total Layanan</p>
+                                    <h3 id="total-services" class="mt-1 text-2xl font-semibold text-gray-900">0</h3>
+                                </div>
+                                <div class="p-3 rounded-lg bg-green-50 text-green-600">
+                                    <i class="fas fa-spa text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dashboard-card bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Transaksi Hari Ini</p>
+                                    <h3 id="today-transactions" class="mt-1 text-2xl font-semibold text-gray-900">0</h3>
+                                </div>
+                                <div class="p-3 rounded-lg bg-blue-50 text-blue-600">
+                                    <i class="fas fa-receipt text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dashboard-card bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Pendapatan</p>
+                                    <h3 id="total-income" class="mt-1 text-2xl font-semibold text-gray-900">Rp0</h3>
+                                </div>
+                                <div class="p-3 rounded-lg bg-purple-50 text-purple-600">
+                                    <i class="fas fa-wallet text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-lg font-semibold text-gray-900">Transaksi Terakhir</h2>
+                                <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Lihat Semua</a>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recent-transactions" class="bg-white divide-y divide-gray-200">
+                                        <!-- Recent transactions will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-lg font-semibold text-gray-900">Produk Stok Rendah</h2>
+                                <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Lihat Semua</a>
+                            </div>
+                            <div class="space-y-4">
+                                <div id="low-stock-products">
+                                    <!-- Low stock products will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Products Section -->
+                <section id="products-section" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h2 class="text-2xl font-bold text-gray-900">Manajemen Produk</h2>
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <div class="relative flex-1 sm:w-64">
+                                <input type="text" placeholder="Cari produk..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            </div>
+                            <button id="add-product-btn" class="flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                <i class="fas fa-plus mr-2"></i> Tambah
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produk</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="products-table" class="bg-white divide-y divide-gray-200">
+                                    <!-- Products will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Services Section -->
+                <section id="services-section" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h2 class="text-2xl font-bold text-gray-900">Manajemen Layanan</h2>
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <div class="relative flex-1 sm:w-64">
+                                <input type="text" placeholder="Cari layanan..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            </div>
+                            <button id="add-service-btn" class="flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                <i class="fas fa-plus mr-2"></i> Tambah
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Layanan</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durasi</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="services-table" class="bg-white divide-y divide-gray-200">
+                                    <!-- Services will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Transactions Section -->
+                <section id="transactions-section" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h2 class="text-2xl font-bold text-gray-900">Riwayat Transaksi</h2>
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <div class="relative flex-1 sm:w-64">
+                                <input type="text" placeholder="Cari transaksi..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            </div>
+                            <button class="flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                <i class="fas fa-filter mr-2"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pelanggan</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactions-table" class="bg-white divide-y divide-gray-200">
+                                    <!-- Transactions will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Customers Section -->
+                <section id="customers-section" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h2 class="text-2xl font-bold text-gray-900">Manajemen Pelanggan</h2>
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <div class="relative flex-1 sm:w-64">
+                                <input type="text" placeholder="Cari pelanggan..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                            </div>
+                            <button id="add-customer-btn" class="flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                <i class="fas fa-plus mr-2"></i> Tambah
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pelanggan</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hewan</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kontak</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaksi</th>
+                                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customers-table" class="bg-white divide-y divide-gray-200">
+                                    <!-- Customers will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="product-modal-title">Tambah Produk Baru</h3>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <label for="product-name-input" class="block text-sm font-medium text-gray-700">Nama Produk</label>
+                                    <input type="text" id="product-name-input" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="product-category-input" class="block text-sm font-medium text-gray-700">Kategori</label>
+                                        <select id="product-category-input" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                            <option value="food">Makanan</option>
+                                            <option value="accessory">Aksesoris</option>
+                                            <option value="vitamin">Vitamin</option>
+                                            <option value="other">Lainnya</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="product-stock-input" class="block text-sm font-medium text-gray-700">Stok</label>
+                                        <input type="number" id="product-stock-input" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="product-price-input" class="block text-sm font-medium text-gray-700">Harga</label>
+                                    <div class="mt-1 relative rounded-md shadow-sm">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-gray-500 sm:text-sm">Rp</span>
+                                        </div>
+                                        <input type="text" id="product-price-input" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md py-2 px-3" placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="product-description-input" class="block text-sm font-medium text-gray-700">Deskripsi</label>
+                                    <textarea id="product-description-input" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="save-product-btn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Simpan
+                    </button>
+                    <button type="button" id="cancel-product-btn" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Modal -->
+    <div id="service-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="service-modal-title">Tambah Layanan Baru</h3>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <label for="service-name-input" class="block text-sm font-medium text-gray-700">Nama Layanan</label>
+                                    <input type="text" id="service-name-input" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="service-duration-input" class="block text-sm font-medium text-gray-700">Durasi</label>
+                                        <input type="text" id="service-duration-input" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Contoh: 2 jam">
+                                    </div>
+                                    <div>
+                                        <label for="service-price-input" class="block text-sm font-medium text-gray-700">Harga</label>
+                                        <div class="mt-1 relative rounded-md shadow-sm">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <span class="text-gray-500 sm:text-sm">Rp</span>
+                                            </div>
+                                            <input type="text" id="service-price-input" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md py-2 px-3" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="service-description-input" class="block text-sm font-medium text-gray-700">Deskripsi</label>
+                                    <textarea id="service-description-input" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="save-service-btn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Simpan
+                    </button>
+                    <button type="button" id="cancel-service-btn" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Modal -->
+    <div id="customer-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="customer-modal-title">Tambah Pelanggan Baru</h3>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <label for="customer-name-input" class="block text-sm font-medium text-gray-700">Nama Pelanggan</label>
+                                    <input type="text" id="customer-name-input" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="customer-phone-input" class="block text-sm font-medium text-gray-700">Telepon</label>
+                                        <input type="tel" id="customer-phone-input" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="customer-email-input" class="block text-sm font-medium text-gray-700">Email</label>
+                                        <input type="email" id="customer-email-input" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="customer-address-input" class="block text-sm font-medium text-gray-700">Alamat</label>
+                                    <textarea id="customer-address-input" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Hewan Peliharaan</label>
+                                    <div class="mt-1 space-y-2" id="pets-container">
+                                        <!-- Pet inputs will be added here -->
+                                    </div>
+                                    <button type="button" id="add-pet-btn" class="mt-2 inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        <i class="fas fa-plus mr-1"></i> Tambah Hewan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="save-customer-btn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Simpan
+                    </button>
+                    <button type="button" id="cancel-customer-btn" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // In-memory data storage
+        const data = {
+            products: [
+                { id: 1, name: "Makanan Kucing Premium", category: "food", stock: 15, price: 75000, description: "Makanan kucing usia 1-7 tahun" },
+                { id: 2, name: "Kandang Anjing Sedang", category: "accessory", stock: 8, price: 250000, description: "Ukuran 60x45x50 cm" },
+                { id: 3, name: "Vitamin Bulu Kucing", category: "vitamin", stock: 20, price: 45000, description: "Mengurangi rontok dan memperindah bulu" }
+            ],
+            services: [
+                { id: 1, name: "Grooming Kucing", duration: "2 jam", price: 120000, description: "Termasuk mandi, potong kuku, bersihkan telinga" },
+                { id: 2, name: "Vaksinasi Dasar", duration: "30 menit", price: 150000, description: "Vaksin rabies dan feline distemper" },
+                { id: 3, name: "Penitipan Harian", duration: "24 jam", price: 80000, description: "Termasuk makan 2x sehari" }
+            ],
+            customers: [
+                { 
+                    id: 1, 
+                    name: "Budi Santoso", 
+                    phone: "081234567890", 
+                    email: "budi@example.com", 
+                    address: "Jl. Merdeka No. 123, Jakarta",
+                    pets: [
+                        { name: "Meong", type: "Kucing", age: 2 }
+                    ]
+                }
+            ],
+            transactions: [
+                { id: 1, date: "2023-06-15", customerId: 1, type: "service", serviceId: 1, total: 120000 },
+                { id: 2, date: "2023-06-14", customerId: 1, type: "product", productId: 1, quantity: 2, total: 150000 }
+            ]
+        };
+
+        // DOM Elements
+        const sections = {
+            dashboard: document.getElementById('dashboard-section'),
+            products: document.getElementById('products-section'),
+            services: document.getElementById('services-section'),
+            transactions: document.getElementById('transactions-section'),
+            customers: document.getElementById('customers-section')
+        };
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navigation
+            document.querySelectorAll('[data-section]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const sectionId = this.getAttribute('data-section');
+                    showSection(sectionId);
+                    document.querySelector('h1').textContent = this.textContent.trim();
+                });
+            });
+
+            // Modal buttons
+            document.getElementById('add-product-btn').addEventListener('click', () => showModal('product'));
+            document.getElementById('add-service-btn').addEventListener('click', () => showModal('service'));
+            document.getElementById('add-customer-btn').addEventListener('click', () => showModal('customer'));
+
+            // Modal close buttons
+            document.getElementById('cancel-product-btn').addEventListener('click', () => hideModal('product'));
+            document.getElementById('cancel-service-btn').addEventListener('click', () => hideModal('service'));
+            document.getElementById('cancel-customer-btn').addEventListener('click', () => hideModal('customer'));
+
+            // Save buttons
+            document.getElementById('save-product-btn').addEventListener('click', saveProduct);
+            document.getElementById('save-service-btn').addEventListener('click', saveService);
+            document.getElementById('save-customer-btn').addEventListener('click', saveCustomer);
+
+            // Add pet button
+            document.getElementById('add-pet-btn').addEventListener('click', addPetInput);
+
+            // Load initial data
+            updateDashboard();
+            renderProducts();
+            renderServices();
+            renderCustomers();
+            renderTransactions();
+        });
+
+        // Show selected section
+        function showSection(sectionId) {
+            // Hide all sections
+            Object.values(sections).forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // Show selected section
+            sections[sectionId].classList.remove('hidden');
+
+            // Update active nav link
+            document.querySelectorAll('[data-section]').forEach(link => {
+                link.classList.remove('bg-indigo-50', 'text-indigo-700');
+                if (link.getAttribute('data-section') === sectionId) {
+                    link.classList.add('bg-indigo-50', 'text-indigo-700');
+                }
+            });
+        }
+
+        // Update dashboard stats
+        function updateDashboard() {
+            document.getElementById('total-products').textContent = data.products.length;
+            document.getElementById('total-services').textContent = data.services.length;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const todayTransactions = data.transactions.filter(t => t.date === today).length;
+            document.getElementById('today-transactions').textContent = todayTransactions;
+            
+            const totalIncome = data.transactions.reduce((sum, t) => sum + t.total, 0);
+            document.getElementById('total-income').textContent = `Rp${totalIncome.toLocaleString('id-ID')}`;
+
+            // Recent transactions
+            const recentTransactions = document.getElementById('recent-transactions');
+            recentTransactions.innerHTML = '';
+            data.transactions.slice(0, 5).forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${t.id}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${t.date}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">Rp${t.total.toLocaleString('id-ID')}</td>
+                `;
+                recentTransactions.appendChild(tr);
+            });
+
+            // Low stock products
+            const lowStockProducts = document.getElementById('low-stock-products');
+            lowStockProducts.innerHTML = '';
+            data.products.filter(p => p.stock < 10).forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 bg-yellow-50 rounded-lg';
+                div.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                            <i class="fas fa-exclamation text-yellow-500"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900">${p.name}</p>
+                            <p class="text-sm text-gray-500">Stok: ${p.stock}</p>
+                        </div>
+                    </div>
+                    <button class="text-sm font-medium text-indigo-600 hover:text-indigo-500">Restok</button>
+                `;
+                lowStockProducts.appendChild(div);
+            });
+        }
+
+        // Render products table
+        function renderProducts() {
+            const table = document.getElementById('products-table');
+            table.innerHTML = '';
+            
+            data.products.forEach(product => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                <i class="fas fa-box text-indigo-500"></i>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${product.name}</div>
+                                <div class="text-sm text-gray-500">${product.description}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${product.category === 'food' ? 'bg-green-100 text-green-800' : 
+                              product.category === 'accessory' ? 'bg-blue-100 text-blue-800' : 
+                              'bg-purple-100 text-purple-800'}">
+                            ${product.category === 'food' ? 'Makanan' : 
+                             product.category === 'accessory' ? 'Aksesoris' : 'Vitamin'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${product.stock}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">Rp${product.price.toLocaleString('id-ID')}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-3 edit-product" data-id="${product.id}">Edit</button>
+                        <button class="text-red-600 hover:text-red-900 delete-product" data-id="${product.id}">Hapus</button>
+                    </td>
+                `;
+                table.appendChild(tr);
+            });
+
+            // Add event listeners to edit/delete buttons
+            document.querySelectorAll('.edit-product').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    editProduct(productId);
+                });
+            });
+
+            document.querySelectorAll('.delete-product').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    deleteProduct(productId);
+                });
+            });
+        }
+
+        // Render services table
+        function renderServices() {
+            const table = document.getElementById('services-table');
+            table.innerHTML = '';
+            
+            data.services.forEach(service => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                <i class="fas fa-spa text-green-500"></i>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${service.name}</div>
+                                <div class="text-sm text-gray-500">${service.description}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${service.duration}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">Rp${service.price.toLocaleString('id-ID')}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-3 edit-service" data-id="${service.id}">Edit</button>
+                        <button class="text-red-600 hover:text-red-900 delete-service" data-id="${service.id}">Hapus</button>
+                    </td>
+                `;
+                table.appendChild(tr);
+            });
+
+            // Add event listeners to edit/delete buttons
+            document.querySelectorAll('.edit-service').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const serviceId = parseInt(this.getAttribute('data-id'));
+                    editService(serviceId);
+                });
+            });
+
+            document.querySelectorAll('.delete-service').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const serviceId = parseInt(this.getAttribute('data-id'));
+                    deleteService(serviceId);
+                });
+            });
+        }
+
+        // Render customers table
+        function renderCustomers() {
+            const table = document.getElementById('customers-table');
+            table.innerHTML = '';
+            
+            data.customers.forEach(customer => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                <i class="fas fa-user text-gray-500"></i>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${customer.name}</div>
+                                <div class="text-sm text-gray-500">${customer.email}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">
+                            ${customer.pets.map(pet => `${pet.name} (${pet.type})`).join(', ')}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${customer.phone}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">
+                            ${data.transactions.filter(t => t.customerId === customer.id).length} transaksi
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-3 edit-customer" data-id="${customer.id}">Edit</button>
+                        <button class="text-red-600 hover:text-red-900 delete-customer" data-id="${customer.id}">Hapus</button>
+                    </td>
+                `;
+                table.appendChild(tr);
+            });
+
+            // Add event listeners to edit/delete buttons
+            document.querySelectorAll('.edit-customer').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const customerId = parseInt(this.getAttribute('data-id'));
+                    editCustomer(customerId);
+                });
+            });
+
+            document.querySelectorAll('.delete-customer').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const customerId = parseInt(this.getAttribute('data-id'));
+                    deleteCustomer(customerId);
+                });
+            });
+        }
+
+        // Render transactions table
+        function renderTransactions() {
+            const table = document.getElementById('transactions-table');
+            table.innerHTML = '';
+            
+            data.transactions.forEach(transaction => {
+                const customer = data.customers.find(c => c.id === transaction.customerId);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${transaction.id}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${transaction.date}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${customer ? customer.name : 'Unknown'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${transaction.type === 'product' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                            ${transaction.type === 'product' ? 'Produk' : 'Layanan'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">Rp${transaction.total.toLocaleString('id-ID')}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900">Detail</button>
+                    </td>
+                `;
+                table.appendChild(tr);
+            });
+        }
+
+        // Show modal
+        function showModal(type) {
+            const modal = document.getElementById(`${type}-modal`);
+            modal.classList.remove('hidden');
+        }
+
+        // Hide modal
+        function hideModal(type) {
+            const modal = document.getElementById(`${type}-modal`);
+            modal.classList.add('hidden');
+        }
+
+        // Save product
+        function saveProduct() {
+            const name = document.getElementById('product-name-input').value;
+            const category = document.getElementById('product-category-input').value;
+            const stock = parseInt(document.getElementById('product-stock-input').value);
+            const price = parseInt(document.getElementById('product-price-input').value.replace(/\D/g, ''));
+            const description = document.getElementById('product-description-input').value;
+
+            const newProduct = {
+                id: data.products.length > 0 ? Math.max(...data.products.map(p => p.id)) + 1 : 1,
+                name,
+                category,
+                stock,
+                price,
+                description
+            };
+
+            data.products.push(newProduct);
+            renderProducts();
+            updateDashboard();
+            hideModal('product');
+        }
+
+        // Save service
+        function saveService() {
+            const name = document.getElementById('service-name-input').value;
+            const duration = document.getElementById('service-duration-input').value;
+            const price = parseInt(document.getElementById('service-price-input').value.replace(/\D/g, ''));
+            const description = document.getElementById('service-description-input').value;
+
+            const newService = {
+                id: data.services.length > 0 ? Math.max(...data.services.map(s => s.id)) + 1 : 1,
+                name,
+                duration,
+                price,
+                description
+            };
+
+            data.services.push(newService);
+            renderServices();
+            updateDashboard();
+            hideModal('service');
+        }
+
+        // Save customer
+        function saveCustomer() {
+            const name = document.getElementById('customer-name-input').value;
+            const phone = document.getElementById('customer-phone-input').value;
+            const email = document.getElementById('customer-email-input').value;
+            const address = document.getElementById('customer-address-input').value;
+
+            // Get pet data
+            const petInputs = document.querySelectorAll('.pet-input');
+            const pets = [];
+            petInputs.forEach(input => {
+                const name = input.querySelector('.pet-name').value;
+                const type = input.querySelector('.pet-type').value;
+                const age = input.querySelector('.pet-age').value;
+                if (name) {
+                    pets.push({ name, type, age: parseInt(age) || 0 });
+                }
+            });
+
+            const newCustomer = {
+                id: data.customers.length > 0 ? Math.max(...data.customers.map(c => c.id)) + 1 : 1,
+                name,
+                phone,
+                email,
+                address,
+                pets
+            };
+
+            data.customers.push(newCustomer);
+            renderCustomers();
+            hideModal('customer');
+        }
+
+        // Add pet input
+        function addPetInput() {
+            const container = document.getElementById('pets-container');
+            const div = document.createElement('div');
+            div.className = 'pet-input flex gap-2 items-end';
+            div.innerHTML = `
+                <div class="flex-1">
+                    <label class="block text-xs text-gray-500">Nama</label>
+                    <input type="text" class="pet-name mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                </div>
+                <div class="w-24">
+                    <label class="block text-xs text-gray-500">Jenis</label>
+                    <select class="pet-type mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                        <option value="Kucing">Kucing</option>
+                        <option value="Anjing">Anjing</option>
+                        <option value="Burung">Burung</option>
+                        <option value="Kelinci">Kelinci</option>
+                    </select>
+                </div>
+                <div class="w-16">
+                    <label class="block text-xs text-gray-500">Usia</label>
+                    <input type="number" class="pet-age mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="Tahun">
+                </div>
+                <button type="button" class="remove-pet-btn mb-1 text-red-500 hover:text-red-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            container.appendChild(div);
+
+            // Add event listener to remove button
+            div.querySelector('.remove-pet-btn').addEventListener('click', function() {
+                container.removeChild(div);
+            });
+        }
+
+        // Edit product
+        function editProduct(id) {
+            const product = data.products.find(p => p.id === id);
+            if (!product) return;
+
+            document.getElementById('product-modal-title').textContent = 'Edit Produk';
+            document.getElementById('product-name-input').value = product.name;
+            document.getElementById('product-category-input').value = product.category;
+            document.getElementById('product-stock-input').value = product.stock;
+            document.getElementById('product-price-input').value = product.price.toLocaleString('id-ID');
+            document.getElementById('product-description-input').value = product.description;
+
+            // Change save button to update
+            const saveBtn = document.getElementById('save-product-btn');
+            saveBtn.textContent = 'Update';
+            saveBtn.onclick = function() {
+                product.name = document.getElementById('product-name-input').value;
+                product.category = document.getElementById('product-category-input').value;
+                product.stock = parseInt(document.getElementById('product-stock-input').value);
+                product.price = parseInt(document.getElementById('product-price-input').value.replace(/\D/g, ''));
+                product.description = document.getElementById('product-description-input').value;
+
+                renderProducts();
+                updateDashboard();
+                hideModal('product');
+            };
+
+            showModal('product');
+        }
+
+        // Edit service
+        function editService(id) {
+            const service = data.services.find(s => s.id === id);
+            if (!service) return;
+
+            document.getElementById('service-modal-title').textContent = 'Edit Layanan';
+            document.getElementById('service-name-input').value = service.name;
+            document.getElementById('service-duration-input').value = service.duration;
+            document.getElementById('service-price-input').value = service.price.toLocaleString('id-ID');
+            document.getElementById('service-description-input').value = service.description;
+
+            // Change save button to update
+            const saveBtn = document.getElementById('save-service-btn');
+            saveBtn.textContent = 'Update';
+            saveBtn.onclick = function() {
+                service.name = document.getElementById('service-name-input').value;
+                service.duration = document.getElementById('service-duration-input').value;
+                service.price = parseInt(document.getElementById('service-price-input').value.replace(/\D/g, ''));
+                service.description = document.getElementById('service-description-input').value;
+
+                renderServices();
+                updateDashboard();
+                hideModal('service');
+            };
+
+            showModal('service');
+        }
+
+        // Edit customer
+        function editCustomer(id) {
+            const customer = data.customers.find(c => c.id === id);
+            if (!customer) return;
+
+            document.getElementById('customer-modal-title').textContent = 'Edit Pelanggan';
+            document.getElementById('customer-name-input').value = customer.name;
+            document.getElementById('customer-phone-input').value = customer.phone;
+            document.getElementById('customer-email-input').value = customer.email;
+            document.getElementById('customer-address-input').value = customer.address;
+
+            // Clear existing pet inputs
+            const petsContainer = document.getElementById('pets-container');
+            petsContainer.innerHTML = '';
+
+            // Add pet inputs
+            customer.pets.forEach(pet => {
+                const div = document.createElement('div');
+                div.className = 'pet-input flex gap-2 items-end';
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <label class="block text-xs text-gray-500">Nama</label>
+                        <input type="text" class="pet-name mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm" value="${pet.name}">
+                    </div>
+                    <div class="w-24">
+                        <label class="block text-xs text-gray-500">Jenis</label>
+                        <select class="pet-type mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                            <option value="Kucing" ${pet.type === 'Kucing' ? 'selected' : ''}>Kucing</option>
+                            <option value="Anjing" ${pet.type === 'Anjing' ? 'selected' : ''}>Anjing</option>
+                            <option value="Burung" ${pet.type === 'Burung' ? 'selected' : ''}>Burung</option>
+                            <option value="Kelinci" ${pet.type === 'Kelinci' ? 'selected' : ''}>Kelinci</option>
+                        </select>
+                    </div>
+                    <div class="w-16">
+                        <label class="block text-xs text-gray-500">Usia</label>
+                        <input type="number" class="pet-age mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-1 px-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="Tahun" value="${pet.age || ''}">
+                    </div>
+                    <button type="button" class="remove-pet-btn mb-1 text-red-500 hover:text-red-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                petsContainer.appendChild(div);
+
+                // Add event listener to remove button
+                div.querySelector('.remove-pet-btn').addEventListener('click', function() {
+                    petsContainer.removeChild(div);
+                });
+            });
+
+            // Change save button to update
+            const saveBtn = document.getElementById('save-customer-btn');
+            saveBtn.textContent = 'Update';
+            saveBtn.onclick = function() {
+                customer.name = document.getElementById('customer-name-input').value;
+                customer.phone = document.getElementById('customer-phone-input').value;
+                customer.email = document.getElementById('customer-email-input').value;
+                customer.address = document.getElementById('customer-address-input').value;
+
+                // Get pet data
+                const petInputs = document.querySelectorAll('.pet-input');
+                customer.pets = [];
+                petInputs.forEach(input => {
+                    const name = input.querySelector('.pet-name').value;
+                    const type = input.querySelector('.pet-type').value;
+                    const age = input.querySelector('.pet-age').value;
+                    if (name) {
+                        customer.pets.push({ name, type, age: parseInt(age) || 0 });
+                    }
+                });
+
+                renderCustomers();
+                hideModal('customer');
+            };
+
+            showModal('customer');
+        }
+
+        // Delete product
+        function deleteProduct(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
+                data.products = data.products.filter(p => p.id !== id);
+                renderProducts();
+                updateDashboard();
+            }
+        }
+
+        // Delete service
+        function deleteService(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus layanan ini?')) {
+                data.services = data.services.filter(s => s.id !== id);
+                renderServices();
+                updateDashboard();
+            }
+        }
+
+        // Delete customer
+        function deleteCustomer(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus pelanggan ini?')) {
+                data.customers = data.customers.filter(c => c.id !== id);
+                renderCustomers();
+            }
+        }
+    </script>
+</body>
+</html>
