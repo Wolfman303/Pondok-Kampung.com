@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetCare - Manajemen Pet Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .dashboard-card {
+            transition: transform 0.3s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                min-height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-3">
+                <h4 class="text-center mb-4">PetCare</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" id="dashboard-tab">
+                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="products-tab">
+                            <i class="bi bi-box-seam me-2"></i> Produk
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="services-tab">
+                            <i class="bi bi-scissors me-2"></i> Layanan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="transactions-tab">
+                            <i class="bi bi-receipt me-2"></i> Transaksi
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 p-4">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section">
+                    <h2>Dashboard</h2>
+                    <div class="row mt-4">
+                        <div class="col-md-4 mb-4">
+                            <div class="card dashboard-card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total Produk</h5>
+                                    <h2 id="total-products" class="card-text">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card dashboard-card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Layanan Hari Ini</h5>
+                                    <h2 id="total-services" class="card-text">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card dashboard-card bg-warning text-dark">
+                                <div class="card-body">
+                                    <h5 class="card-title">Pendapatan</h5>
+                                    <h2 id="total-income" class="card-text">Rp0</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Section -->
+                <div id="products-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Manajemen Produk</h2>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                            Tambah Produk
+                        </button>
+                    </div>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Produk</th>
+                                <th>Stok</th>
+                                <th>Harga</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body">
+                            <!-- Produk akan dimuat di sini -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Services Section -->
+                <div id="services-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Manajemen Layanan</h2>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                            Tambah Layanan
+                        </button>
+                    </div>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Layanan</th>
+                                <th>Harga</th>
+                                <th>Durasi</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="services-table-body">
+                            <!-- Layanan akan dimuat di sini -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Transactions Section -->
+                <div id="transactions-section" style="display: none;">
+                    <h2 class="mb-4">Transaksi Terakhir</h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tanggal</th>
+                                    <th>Jenis</th>
+                                    <th>Nama</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-table-body">
+                                <!-- Transaksi akan dimuat di sini -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Produk</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="product-form">
+                        <div class="mb-3">
+                            <label class="form-label">Nama Produk</label>
+                            <input type="text" class="form-control" id="product-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Stok</label>
+                            <input type="number" class="form-control" id="product-stock" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Harga</label>
+                            <input type="number" class="form-control" id="product-price" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" id="save-product">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Service Modal -->
+    <div class="modal fade" id="addServiceModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Layanan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="service-form">
+                        <div class="mb-3">
+                            <label class="form-label">Nama Layanan</label>
+                            <input type="text" class="form-control" id="service-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Harga</label>
+                            <input type="number" class="form-control" id="service-price" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Durasi</label>
+                            <input type="text" class="form-control" id="service-duration" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" id="save-service">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Data in-memory
+        let products = [
+            { id: 1, name: "Makanan Kucing Premium", stock: 15, price: 75000 },
+            { id: 2, name: "Kandang Anjing Sedang", stock: 8, price: 250000 }
+        ];
+
+        let services = [
+            { id: 1, name: "Grooming Kucing", price: 120000, duration: "2 jam" },
+            { id: 2, name: "Vaksinasi Dasar", price: 150000, duration: "30 menit" }
+        ];
+
+        let transactions = [
+            { id: 1, date: "2023-06-15", type: "Produk", name: "Makanan Kucing", total: 75000 },
+            { id: 2, date: "2023-06-14", type: "Layanan", name: "Grooming Kucing", total: 120000 }
+        ];
+
+        // DOM Elements
+        const sections = {
+            dashboard: document.getElementById('dashboard-section'),
+            products: document.getElementById('products-section'),
+            services: document.getElementById('services-section'),
+            transactions: document.getElementById('transactions-section')
+        };
+
+        const tabLinks = {
+            dashboard: document.getElementById('dashboard-tab'),
+            products: document.getElementById('products-tab'),
+            services: document.getElementById('services-tab'),
+            transactions: document.getElementById('transactions-tab')
+        };
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load dashboard by default
+            showSection('dashboard');
+            updateDashboard();
+            renderProducts();
+            renderServices();
+            renderTransactions();
+
+            // Tab navigation
+            for (const [tabName, tabLink] of Object.entries(tabLinks)) {
+                tabLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showSection(tabName);
+                });
+            }
+
+            // Product form handling
+            document.getElementById('save-product').addEventListener('click', addProduct);
+            document.getElementById('save-service').addEventListener('click', addService);
+        });
+
+        // Show selected section
+        function showSection(sectionName) {
+            // Hide all sections first
+            for (const section of Object.values(sections)) {
+                section.style.display = 'none';
+            }
+            
+            // Remove active class from all tabs
+            for (const tab of Object.values(tabLinks)) {
+                tab.classList.remove('active');
+            }
+            
+            // Show selected section and mark tab as active
+            sections[sectionName].style.display = 'block';
+            tabLinks[sectionName].classList.add('active');
+        }
+
+        // Update dashboard stats
+        function updateDashboard() {
+            document.getElementById('total-products').textContent = products.length;
+            document.getElementById('total-services').textContent = services.length;
+            
+            const totalIncome = transactions.reduce((sum, transaction) => sum + transaction.total, 0);
+            document.getElementById('total-income').textContent = `Rp${totalIncome.toLocaleString('id-ID')}`;
+        }
+
+        // Render products table
+        function renderProducts() {
+            const tableBody = document.getElementById('products-table-body');
+            tableBody.innerHTML = '';
+            
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${product.stock}</td>
+                    <td>Rp${product.price.toLocaleString('id-ID')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-2 edit-product" data-id="${product.id}">Edit</button>
+                        <button class="btn btn-sm btn-danger delete-product" data-id="${product.id}">Hapus</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // Add event listeners to edit/delete buttons
+            document.querySelectorAll('.edit-product').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    editProduct(productId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-product').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    deleteProduct(productId);
+                });
+            });
+        }
+
+        // Render services table
+        function renderServices() {
+            const tableBody = document.getElementById('services-table-body');
+            tableBody.innerHTML = '';
+            
+            services.forEach(service => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${service.id}</td>
+                    <td>${service.name}</td>
+                    <td>Rp${service.price.toLocaleString('id-ID')}</td>
+                    <td>${service.duration}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-2 edit-service" data-id="${service.id}">Edit</button>
+                        <button class="btn btn-sm btn-danger delete-service" data-id="${service.id}">Hapus</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // Add event listeners to edit/delete buttons
+            document.querySelectorAll('.edit-service').forEach(button => {
+                button.addEventListener('click', function() {
+                    const serviceId = parseInt(this.getAttribute('data-id'));
+                    editService(serviceId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-service').forEach(button => {
+                button.addEventListener('click', function() {
+                    const serviceId = parseInt(this.getAttribute('data-id'));
+                    deleteService(serviceId);
+                });
+            });
+        }
+
+        // Render transactions table
+        function renderTransactions() {
+            const tableBody = document.getElementById('transactions-table-body');
+            tableBody.innerHTML = '';
+            
+            transactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${transaction.id}</td>
+                    <td>${transaction.date}</td>
+                    <td>${transaction.type}</td>
+                    <td>${transaction.name}</td>
+                    <td>Rp${transaction.total.toLocaleString('id-ID')}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Add new product
+        function addProduct() {
+            const name = document.getElementById('product-name').value;
+            const stock = parseInt(document.getElementById('product-stock').value);
+            const price = parseInt(document.getElementById('product-price').value);
+            
+            const newProduct = {
+                id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
+                name,
+                stock,
+                price
+            };
+            
+            products.push(newProduct);
+            
+            // Add sample transaction
+            transactions.unshift({
+                id: transactions.length > 0 ? Math.max(...transactions.map(t => t.id)) + 1 : 1,
+                date: new Date().toISOString().split('T')[0],
+                type: "Produk",
+                name: name,
+                total: price
+            });
+            
+            // Reset form and close modal
+            document.getElementById('product-form').reset();
+            bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+            
+            // Update UI
+            renderProducts();
+            renderTransactions();
+            updateDashboard();
+            
+            alert('Produk berhasil ditambahkan!');
+        }
+
+        // Add new service
+        function addService() {
+            const name = document.getElementById('service-name').value;
+            const price = parseInt(document.getElementById('service-price').value);
+            const duration = document.getElementById('service-duration').value;
+            
+            const newService = {
+                id: services.length > 0 ? Math.max(...services.map(s => s.id)) + 1 : 1,
+                name,
+                price,
+                duration
+            };
+            
+            services.push(newService);
+            
+            // Add sample transaction
+            transactions.unshift({
+                id: transactions.length > 0 ? Math.max(...transactions.map(t => t.id)) + 1 : 1,
+                date: new Date().toISOString().split('T')[0],
+                type: "Layanan",
+                name: name,
+                total: price
+            });
+            
+            // Reset form and close modal
+            document.getElementById('service-form').reset();
+            bootstrap.Modal.getInstance(document.getElementById('addServiceModal')).hide();
+            
+            // Update UI
+            renderServices();
+            renderTransactions();
+            updateDashboard();
+            
+            alert('Layanan berhasil ditambahkan!');
+        }
+
+        // Edit produc<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetCare - Manajemen Pet Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .dashboard-card {
+            transition: transform 0.3s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                min-height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-3">
+                <h4 class="text-center mb-4">PetCare</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" id="dashboard-tab">
+                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="products-tab">
+                            <i class="bi bi-box-seam me-2"></i> Produk
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="services-tab">
+                            <i class="bi bi-scissors me-2"></i> Layanan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="transactions-tab">
+                            <i class="bi bi-receipt me-2"></i> Transaksi
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 p-4">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section">
+                    <h2>Dashboard</h2>
+                    <div class="row mt-4">
+                        <div class="col-md-4 mb-4">
+                            <div class="card dashboard-card bg-primary text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Total Produk</h5>
+                                    <h2 id="total-products" class="card-text">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card dashboard-card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title">Layanan Hari Ini</h5>
+                                    <h2 id="total-services" class="card-text">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card dashboard-card bg-warning text-dark">
+                                <div class="card-body">
+                                    <h5 class="card-title">Pendapatan</h5>
+                                    <h2 id="total-income" class="card-text">Rp0</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Section -->
+                <div id="products-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Manajemen Produk</h2>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                            Tambah Produk
+                        </button>
+                    </div>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Produk</th>
+                                <th>Stok</th>
+                                <th>Harga</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body">
+                            <!-- Produk akan dimuat di sini -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Services Section -->
+                <div id="services-section" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Manajemen Layanan</h2>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                            Tambah Layanan
+                        </button>
+                    </div>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Layanan</th>
+                                <th>Harga</th>
+                                <th>Durasi</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="services-table-body">
+                            <!-- Layanan akan dimuat di sini -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Transactions Section -->
+                <div id="transactions-section" style="display: none;">
+                    <h2 class="mb-4">Transaksi Terakhir</h2>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tanggal</th>
+                                    <th>Jenis</th>
+                                    <th>Nama</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-table-body">
+                                <!-- Transaksi akan dimuat di sini -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Produk</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="product-form">
+                        <div class="mb-3">
+                            <label class="form-label">Nama Produk</label>
+                            <input type="text" class="form-control" id="product-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Stok</label>
+                            <input type="number" class="form-control" id="product-stock" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Harga</label>
+                            <input type="number" class="form-control" id="product-price" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" id="save-product">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Service Modal -->
+    <div class="modal fade" id="addServiceModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Layanan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="service-form">
+                        <div class="mb-3">
+                            <label class="form-label">Nama Layanan</label>
+                            <input type="text" class="form-control" id="service-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Harga</label>
+                            <input type="number" class="form-control" id="service-price" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Durasi</label>
+                            <input type="text" class="form-control" id="service-duration" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" id="save-service">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Data in-memory
+        let products = [
+            { id: 1, name: "Makanan Kucing Premium", stock: 15, price: 75000 },
+            { id: 2, name: "Kandang Anjing Sedang", stock: 8, price: 250000 }
+        ];
+
+        let services = [
+            { id: 1, name: "Grooming Kucing", price: 120000, duration: "2 jam" },
+            { id: 2, name: "Vaksinasi Dasar", price: 150000, duration: "30 menit" }
+        ];
+
+        let transactions = [
+            { id: 1, date: "2023-06-15", type: "Produk", name: "Makanan Kucing", total: 75000 },
+            { id: 2, date: "2023-06-14", type: "Layanan", name: "Grooming Kucing", total: 120000 }
+        ];
+
+        // DOM Elements
+        const sections = {
+            dashboard: document.getElementById('dashboard-section'),
+            products: document.getElementById('products-section'),
+            services: document.getElementById('services-section'),
+            transactions: document.getElementById('transactions-section')
+        };
+
+        const tabLinks = {
+            dashboard: document.getElementById('dashboard-tab'),
+            products: document.getElementById('products-tab'),
+            services: document.getElementById('services-tab'),
+            transactions: document.getElementById('transactions-tab')
+        };
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load dashboard by default
+            showSection('dashboard');
+            updateDashboard();
+            renderProducts();
+            renderServices();
+            renderTransactions();
+
+            // Tab navigation
+            for (const [tabName, tabLink] of Object.entries(tabLinks)) {
+                tabLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showSection(tabName);
+                });
+            }
+
+            // Product form handling
+            document.getElementById('save-product').addEventListener('click', addProduct);
+            document.getElementById('save-service').addEventListener('click', addService);
+        });
+
+        // Show selected section
+        function showSection(sectionName) {
+            // Hide all sections first
+            for (const section of Object.values(sections)) {
+                section.style.display = 'none';
+            }
+            
+            // Remove active class from all tabs
+            for (const tab of Object.values(tabLinks)) {
+                tab.classList.remove('active');
+            }
+            
+            // Show selected section and mark tab as active
+            sections[sectionName].style.display = 'block';
+            tabLinks[sectionName].classList.add('active');
+        }
+
+        // Update dashboard stats
+        function updateDashboard() {
+            document.getElementById('total-products').textContent = products.length;
+            document.getElementById('total-services').textContent = services.length;
+            
+            const totalIncome = transactions.reduce((sum, transaction) => sum + transaction.total, 0);
+            document.getElementById('total-income').textContent = `Rp${totalIncome.toLocaleString('id-ID')}`;
+        }
+
+        // Render products table
+        function renderProducts() {
+            const tableBody = document.getElementById('products-table-body');
+            tableBody.innerHTML = '';
+            
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${product.stock}</td>
+                    <td>Rp${product.price.toLocaleString('id-ID')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-2 edit-product" data-id="${product.id}">Edit</button>
+                        <button class="btn btn-sm btn-danger delete-product" data-id="${product.id}">Hapus</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // Add event listeners to edit/delete buttons
+            document.querySelectorAll('.edit-product').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    editProduct(productId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-product').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    deleteProduct(productId);
+                });
+            });
+        }
+
+        // Render services table
+        function renderServices() {
+            const tableBody = document.getElementById('services-table-body');
+            tableBody.innerHTML = '';
+            
+            services.forEach(service => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${service.id}</td>
+                    <td>${service.name}</td>
+                    <td>Rp${service.price.toLocaleString('id-ID')}</td>
+                    <td>${service.duration}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-2 edit-service" data-id="${service.id}">Edit</button>
+                        <button class="btn btn-sm btn-danger delete-service" data-id="${service.id}">Hapus</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // Add event listeners to edit/delete buttons
+            document.querySelectorAll('.edit-service').forEach(button => {
+                button.addEventListener('click', function() {
+                    const serviceId = parseInt(this.getAttribute('data-id'));
+                    editService(serviceId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-service').forEach(button => {
+                button.addEventListener('click', function() {
+                    const serviceId = parseInt(this.getAttribute('data-id'));
+                    deleteService(serviceId);
+                });
+            });
+        }
+
+        // Render transactions table
+        function renderTransactions() {
+            const tableBody = document.getElementById('transactions-table-body');
+            tableBody.innerHTML = '';
+            
+            transactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${transaction.id}</td>
+                    <td>${transaction.date}</td>
+                    <td>${transaction.type}</td>
+                    <td>${transaction.name}</td>
+                    <td>Rp${transaction.total.toLocaleString('id-ID')}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Add new product
+        function addProduct() {
+            const name = document.getElementById('product-name').value;
+            const stock = parseInt(document.getElementById('product-stock').value);
+            const price = parseInt(document.getElementById('product-price').value);
+            
+            const newProduct = {
+                id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
+                name,
+                stock,
+                price
+            };
+            
+            products.push(newProduct);
+            
+            // Add sample transaction
+            transactions.unshift({
+                id: transactions.length > 0 ? Math.max(...transactions.map(t => t.id)) + 1 : 1,
+                date: new Date().toISOString().split('T')[0],
+                type: "Produk",
+                name: name,
+                total: price
+            });
+            
+            // Reset form and close modal
+            document.getElementById('product-form').reset();
+            bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+            
+            // Update UI
+            renderProducts();
+            renderTransactions();
+            updateDashboard();
+            
+            alert('Produk berhasil ditambahkan!');
+        }
+
+        // Add new service
+        function addService() {
+            const name = document.getElementById('service-name').value;
+            const price = parseInt(document.getElementById('service-price').value);
+            const duration = document.getElementById('service-duration').value;
+            
+            const newService = {
+                id: services.length > 0 ? Math.max(...services.map(s => s.id)) + 1 : 1,
+                name,
+                price,
+                duration
+            };
+            
+            services.push(newService);
+            
+            // Add sample transaction
+            transactions.unshift({
+                id: transactions.length > 0 ? Math.max(...transactions.map(t => t.id)) + 1 : 1,
+                date: new Date().toISOString().split('T')[0],
+                type: "Layanan",
+                name: name,
+                total: price
+            });
+            
+            // Reset form and close modal
+            document.getElementById('service-form').reset();
+            bootstrap.Modal.getInstance(document.getElementById('addServiceModal')).hide();
+            
+            // Update UI
+            renderServices();
+            renderTransactions();
+            updateDashboard();
+            
+            alert('Layanan berhasil ditambahkan!');
+        }
+
+        // Edit product (placeholder - would need another modal)
+        function editProduct(id) {
+            alert(`Fitur edit produk ID ${id} akan diimplementasikan nanti`);
+        }
+
+        // Delete product
+        function deleteProduct(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
+                products = products.filter(product => product.id !== id);
+                renderProducts();
+                updateDashboard();
+                alert('Produk berhasil dihapus!');
+            }
+        }
+
+        // Edit service (placeholder)
+        function editService(id) {
+            alert(`Fitur edit layanan ID ${id} akan diimplementasikan nanti`);
+        }
+
+        // Delete service
+        function deleteService(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus layanan ini?')) {
+                services = services.filter(service => service.id !== id);
+                renderServices();
+                updateDashboard();
+                alert('Layanan berhasil dihapus!');
+            }
+        }
+    </script>
+</body>
+</html>
