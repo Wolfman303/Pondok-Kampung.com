@@ -1,0 +1,272 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Petshop Care - Full Final</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('-translate-x-full');
+    }
+
+    function showSection(id) {
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.add('hidden');
+      });
+      document.getElementById(id).classList.remove('hidden');
+      if (window.innerWidth < 768) {
+        document.getElementById('sidebar').classList.add('-translate-x-full');
+      }
+    }
+
+    function addRow(tableId, placeholders) {
+      const tbody = document.getElementById(tableId).querySelector("tbody");
+      const row = tbody.insertRow();
+      placeholders.forEach(ph => {
+        const cell = row.insertCell();
+        const input = document.createElement("input");
+        input.placeholder = ph;
+        input.className = "border rounded p-1 w-full";
+        cell.appendChild(input);
+      });
+      const aksi = row.insertCell();
+      const btn = document.createElement("button");
+      btn.innerText = "Simpan";
+      btn.className = "px-2 py-1 bg-green-500 text-white rounded";
+      aksi.appendChild(btn);
+    }
+
+    function addProductRow(data = {}) {
+      const table = document.getElementById('produkTable').getElementsByTagName('tbody')[0];
+      const newRow = table.insertRow();
+
+      const fields = ['Nama Produk', 'Kategori', 'Jumlah', 'Harga/unit'];
+      const inputs = [];
+
+      fields.forEach(field => {
+        const cell = newRow.insertCell();
+        const input = document.createElement('input');
+        input.className = 'border rounded p-1 w-full';
+        input.placeholder = field;
+        input.value = data[field.toLowerCase().replace('/', '').replace(/\s+/g, '')] || '';
+        cell.appendChild(input);
+        inputs.push(input);
+      });
+
+      const totalCell = newRow.insertCell();
+      const totalSpan = document.createElement('span');
+      totalSpan.innerText = 'Rp 0';
+      totalCell.appendChild(totalSpan);
+
+      function updateTotal() {
+        const jumlah = parseFloat(inputs[2].value) || 0;
+        const harga = parseFloat(inputs[3].value) || 0;
+        const total = jumlah * harga;
+        totalSpan.innerText = 'Rp ' + total.toLocaleString();
+      }
+
+      inputs[2].addEventListener('input', updateTotal);
+      inputs[3].addEventListener('input', updateTotal);
+      updateTotal();
+
+      const aksiCell = newRow.insertCell();
+      const saveBtn = document.createElement('button');
+      saveBtn.innerText = 'Simpan';
+      saveBtn.className = 'text-white bg-green-500 px-2 py-1 rounded';
+      saveBtn.addEventListener('click', () => {
+        simpanProdukKeStorage();
+      });
+      aksiCell.appendChild(saveBtn);
+    }
+
+    function simpanProdukKeStorage() {
+      const rows = document.querySelectorAll('#produkTable tbody tr');
+      const data = [];
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+          const nama = cells[0].querySelector('input')?.value || '';
+          const kategori = cells[1].querySelector('input')?.value || '';
+          const jumlah = cells[2].querySelector('input')?.value || '';
+          const harga = cells[3].querySelector('input')?.value || '';
+          const total = cells[4].innerText || '';
+          data.push({ nama, kategori, jumlah, harga, total });
+        }
+      });
+      localStorage.setItem('produkData', JSON.stringify(data));
+    }
+
+    function muatProdukDariStorage() {
+      const data = JSON.parse(localStorage.getItem('produkData')) || [];
+      data.forEach(item => {
+        addProductRow({
+          namaproduk: item.nama,
+          kategori: item.kategori,
+          jumlah: item.jumlah,
+          hargaunit: item.harga
+        });
+      });
+    }
+
+    function generateLaporan() {
+      function generateLaporan() {
+  const pendapatan = parseFloat(document.getElementById('inputPendapatan').value) || 0;
+  const biaya = parseFloat(document.getElementById('inputBiaya').value) || 0;
+  const modalAwal = parseFloat(document.getElementById('inputModalAwal').value) || 0;
+  const tambahan = parseFloat(document.getElementById('inputTambahan').value) || 0;
+  const laba = pendapatan - biaya;
+  const modalAkhir = modalAwal + tambahan + laba;
+  const aktiva = modalAkhir;
+  const kewajiban = 0;
+  const ekuitas = aktiva - kewajiban;
+
+  document.querySelector("#tabel-laba-rugi tbody").innerHTML = `
+    <tr><td>Pendapatan</td><td>Rp ${pendapatan.toLocaleString()}</td></tr>
+    <tr><td>Biaya</td><td>Rp ${biaya.toLocaleString()}</td></tr>
+    <tr><td><strong>Laba Bersih</strong></td><td><strong>Rp ${laba.toLocaleString()}</strong></td></tr>`;
+
+  document.querySelector("#tabel-modal tbody").innerHTML = `
+    <tr><td>Modal Awal</td><td>Rp ${modalAwal.toLocaleString()}</td></tr>
+    <tr><td>Tambahan Modal</td><td>Rp ${tambahan.toLocaleString()}</td></tr>
+    <tr><td>Laba Bersih</td><td>Rp ${laba.toLocaleString()}</td></tr>
+    <tr><td><strong>Modal Akhir</strong></td><td><strong>Rp ${modalAkhir.toLocaleString()}</strong></td></tr>`;
+
+  document.querySelector("#tabel-neraca tbody").innerHTML = `
+    <tr><td>Total Aktiva</td><td>Rp ${aktiva.toLocaleString()}</td></tr>
+    <tr><td>Total Kewajiban</td><td>Rp ${kewajiban.toLocaleString()}</td></tr>
+    <tr><td><strong>Ekuitas</strong></td><td><strong>Rp ${ekuitas.toLocaleString()}</strong></td></tr>`;
+}
+
+      document.querySelector("#tabel-laba-rugi tbody").innerHTML = `
+        <tr><td>Pendapatan</td><td>Rp ${pendapatan.toLocaleString()}</td></tr>
+        <tr><td>Biaya</td><td>Rp ${biaya.toLocaleString()}</td></tr>
+        <tr><td><strong>Laba Bersih</strong></td><td><strong>Rp ${laba.toLocaleString()}</strong></td></tr>`;
+
+      document.querySelector("#tabel-modal tbody").innerHTML = `
+        <tr><td>Modal Awal</td><td>Rp ${modalAwal.toLocaleString()}</td></tr>
+        <tr><td>Tambahan Modal</td><td>Rp ${tambahan.toLocaleString()}</td></tr>
+        <tr><td>Laba Bersih</td><td>Rp ${laba.toLocaleString()}</td></tr>
+        <tr><td><strong>Modal Akhir</strong></td><td><strong>Rp ${modalAkhir.toLocaleString()}</strong></td></tr>`;
+
+      document.querySelector("#tabel-neraca tbody").innerHTML = `
+        <tr><td>Total Aktiva</td><td>Rp ${aktiva.toLocaleString()}</td></tr>
+        <tr><td>Total Kewajiban</td><td>Rp ${kewajiban.toLocaleString()}</td></tr>
+        <tr><td><strong>Ekuitas</strong></td><td><strong>Rp ${ekuitas.toLocaleString()}</strong></td></tr>`;
+    }
+
+    window.onload = muatProdukDariStorage;
+  </script>
+</head>
+<body class="flex h-screen">
+  <div id="sidebar" class="fixed md:relative bg-pink-200 w-64 p-4 transform md:translate-x-0 -translate-x-full transition-transform duration-200 ease-in-out z-10">
+    <h2 class="text-2xl font-bold mb-4">Petshop Care</h2>
+    <ul>
+      <li><button onclick="showSection('produk')" class="w-full text-left py-2">Manajemen Produk</button></li>
+      <li><button onclick="showSection('layanan')" class="w-full text-left py-2">Manajemen Layanan</button></li>
+      <li><button onclick="showSection('pelanggan')" class="w-full text-left py-2">Manajemen Pelanggan</button></li>
+      <li><button onclick="showSection('karyawan')" class="w-full text-left py-2">Manajemen Karyawan</button></li>
+      <li><button onclick="showSection('stok')" class="w-full text-left py-2">Kartu Stok</button></li>
+      <li><button onclick="showSection('laporanKeuangan')" class="w-full text-left py-2">Laporan Keuangan</button></li>
+    </ul>
+  </div>
+
+  <div class="flex-1 p-4 overflow-auto">
+    <button class="md:hidden mb-4" onclick="toggleSidebar()">☰</button>
+
+    <div id="produk" class="content-section">
+      <h1 class="text-2xl font-bold mb-4">Manajemen Produk</h1>
+      <button onclick="addProductRow()" class="mb-2 px-3 py-1 bg-blue-500 text-white rounded">Tambah Produk</button>
+      <table id="produkTable" class="w-full table-auto border">
+        <thead><tr><th>Nama</th><th>Kategori</th><th>Jumlah</th><th>Harga/Unit</th><th>Total Harga</th><th>Aksi</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div id="layanan" class="content-section hidden">
+      <h1 class="text-2xl font-bold mb-4">Manajemen Layanan</h1>
+      <button onclick="addRow('layananTable', ['Layanan', 'Jenis Hewan', 'Harga', 'Durasi', 'Deskripsi'])" class="mb-2 px-3 py-1 bg-blue-500 text-white rounded">Tambah Layanan</button>
+      <table id="layananTable" class="w-full table-auto border">
+        <thead><tr><th>Layanan</th><th>Jenis Hewan</th><th>Harga</th><th>Durasi</th><th>Deskripsi</th><th>Aksi</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div id="pelanggan" class="content-section hidden">
+      <h1 class="text-2xl font-bold mb-4">Manajemen Pelanggan</h1>
+      <button onclick="addRow('pelangganTable', ['Nama', 'Nomor HP', 'Alamat', 'Produk/Jasa'])" class="mb-2 px-3 py-1 bg-blue-500 text-white rounded">Tambah Pelanggan</button>
+      <table id="pelangganTable" class="w-full table-auto border">
+        <thead><tr><th>Nama</th><th>No HP</th><th>Alamat</th><th>Produk/Jasa</th><th>Aksi</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div id="karyawan" class="content-section hidden">
+      <h1 class="text-2xl font-bold mb-4">Manajemen Karyawan</h1>
+      <button onclick="addRow('karyawanTable', ['Nama', 'Tugas', 'Hari'])" class="mb-2 px-3 py-1 bg-blue-500 text-white rounded">Tambah Karyawan</button>
+      <table id="karyawanTable" class="w-full table-auto border">
+        <thead><tr><th>Nama</th><th>Tugas</th><th>Hari</th><th>Aksi</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div id="stok" class="content-section hidden">
+      <h1 class="text-2xl font-bold mb-4">Kartu Stok</h1>
+      <button onclick="addRow('stokTable', ['Produk', 'Masuk', 'Keluar', 'Stok Akhir', 'Harga/unit'])" class="mb-2 px-3 py-1 bg-blue-500 text-white rounded">Tambah Stok</button>
+      <table id="stokTable" class="w-full table-auto border">
+        <thead><tr><th>Produk</th><th>Masuk</th><th>Keluar</th><th>Stok Akhir</th><th>Harga/unit</th><th>Aksi</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div id="laporanKeuangan" class="content-section hidden">
+      <h1 class="text-2xl font-bold mb-4">Laporan Keuangan</h1>
+	  <label for="inputPendapatan">Pendapatan:</label>
+<input type="number" id="inputPendapatan" class="w-full border rounded p-2 mb-2">
+
+<label for="inputBiaya">Biaya:</label>
+<input type="number" id="inputBiaya" class="w-full border rounded p-2 mb-2">
+
+<label for="inputModalAwal">Modal Awal:</label>
+<input type="number" id="inputModalAwal" class="w-full border rounded p-2 mb-2">
+
+<label for="inputTambahan">Tambahan Modal:</label>
+<input type="number" id="inputTambahan" class="w-full border rounded p-2 mb-4">
+
+<button onclick="generateLaporan()" class="px-4 py-2 bg-blue-500 text-white rounded">Tampilkan</button>
+      <label for="bulanLaporan">Pilih Bulan:</label>
+      <input type="month" id="bulanLaporan" class="mb-2 border rounded p-1">
+      <button onclick="generateLaporan()" class="px-3 py-1 bg-blue-500 text-white rounded">Tampilkan</button>
+      <button onclick="window.print()" class="px-3 py-1 bg-green-500 text-white rounded ml-2">Cetak PDF</button>
+
+      <div class="mt-6">
+        <h2 class="text-xl font-semibold mb-2">Laporan Laba Rugi</h2>
+        <table class="w-full border" id="tabel-laba-rugi">
+          <thead><tr><th>Keterangan</th><th>Jumlah (Rp)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="mt-6">
+        <h2 class="text-xl font-semibold mb-2">Laporan Perubahan Modal</h2>
+        <table class="w-full border" id="tabel-modal">
+          <thead><tr><th>Keterangan</th><th>Jumlah (Rp)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="mt-6">
+        <h2 class="text-xl font-semibold mb-2">Laporan Posisi Keuangan (Neraca)</h2>
+        <table class="w-full border" id="tabel-neraca">
+          <thead><tr><th>Aktiva/Kewajiban</th><th>Jumlah (Rp)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
+
