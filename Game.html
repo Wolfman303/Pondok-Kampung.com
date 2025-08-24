@@ -1,110 +1,134 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=portrait">
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>MOBA Duel - Player vs Mahoraga</title>
   <style>
-    body {
-      margin: 0;
-      background: #111;
-      color: white;
-      font-family: sans-serif;
-      overflow: hidden;
+    :root {
+      --hud-bg: rgba(0,0,0,.35);
+      --hud-br: 14px;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; background: #0e0f13; color: #fff; font-family: system-ui, Arial;
+      height: 100%; touch-action: none; -webkit-user-select: none; user-select: none;
+    }
+    .wrap {
+      position: relative; height: 100vh; width: 100vw; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
     }
     canvas {
-      display: block;
-      margin: auto;
-      background: #222;
-      border: 3px solid #555;
+      background: radial-gradient(ellipse at center, #1b1e27 0%, #12141a 70%);
+      border: 3px solid #222831; border-radius: 18px; box-shadow: 0 10px 40px rgba(0,0,0,.45);
     }
-    .ui {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
+
+    /* HP bars */
+    .bars {
+      position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: min(92vw, 560px);
+      display: grid; gap: 8px;
     }
+    .bar {
+      width: 100%; height: 18px; border-radius: 999px; overflow: hidden; border: 2px solid #3a3f52;
+      background: #1a1d27; position: relative;
+    }
+    .fill { height: 100%; width: 100%; }
+    .player-fill { background: linear-gradient(90deg,#39d353,#0b8f2f); }
+    .enemy-fill  { background: linear-gradient(90deg,#ff595e,#8e1b1f); }
+    .bar .txt {
+      position: absolute; inset: 0; display:flex; align-items:center; justify-content:center;
+      font-size: 12px; color: #e9eef6; text-shadow: 0 1px 2px rgba(0,0,0,.8);
+      mix-blend-mode: difference; pointer-events: none;
+    }
+
+    /* Joystick */
     .joystick {
-      width: 120px;
-      height: 120px;
-      border: 2px solid #888;
-      border-radius: 50%;
-      position: relative;
-      background: rgba(255,255,255,0.1);
+      position: absolute; left: 16px; bottom: 16px; width: 140px; height: 140px;
+      border-radius: 50%; background: var(--hud-bg); border: 2px solid #2a2f3f;
+      backdrop-filter: blur(6px);
     }
     .stick {
-      width: 50px;
-      height: 50px;
-      background: rgba(255,255,255,0.4);
-      border-radius: 50%;
-      position: absolute;
-      top: 35px;
-      left: 35px;
+      position: absolute; width: 60px; height: 60px; border-radius: 50%;
+      background: rgba(255,255,255,.25); top: 40px; left: 40px;
+      border: 2px solid rgba(255,255,255,.35);
     }
+
+    /* Skills cluster */
     .skills {
-      position: absolute;
-      bottom: 30px;
-      right: 30px;
-      display: flex;
-      gap: 10px;
+      position: absolute; right: 16px; bottom: 16px; display: grid; gap: 10px;
+      grid-template-columns: repeat(3, 72px);
+      grid-template-rows: 72px 72px;
     }
     .skill-btn {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.2);
-      border: 2px solid #aaa;
+      width: 72px; height: 72px; border-radius: 50%; background: var(--hud-bg);
+      border: 2px solid #2a2f3f; display:flex; align-items:center; justify-content:center;
+      font-weight: 700; font-size: 20px; position: relative; cursor: pointer;
+      backdrop-filter: blur(6px);
+    }
+    .skill-btn:active { transform: scale(.98); }
+    .skill-btn.small { width: 62px; height: 62px; }
+    .skill-label {
+      position: absolute; bottom: -18px; font-size: 11px; color:#aeb6cf; width: 100%;
       text-align: center;
-      line-height: 60px;
-      font-size: 20px;
-      cursor: pointer;
-      user-select: none;
     }
-    .hp-bar {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90%;
-      height: 20px;
-      background: #444;
-      border: 2px solid #999;
+    .cd {
+      position: absolute; inset: 0; border-radius: 50%; background: rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center; font-weight:700;
     }
-    .hp-fill-player {
-      height: 100%;
-      background: linear-gradient(90deg, #4caf50, #1b5e20);
-      width: 100%;
+    .cd.active { display:flex; }
+
+    /* Status tray */
+    .status-tray {
+      position: absolute; top: 40px; right: 16px; display: flex; gap: 8px; flex-wrap: wrap;
+      max-width: 40vw;
     }
-    .hp-fill-enemy {
-      height: 100%;
-      background: linear-gradient(90deg, #f44336, #b71c1c);
-      width: 100%;
+    .badge {
+      padding: 6px 10px; font-size: 12px; border-radius: 999px; border: 1px solid #3a3f52;
+      background: var(--hud-bg);
+    }
+
+    /* Small help */
+    .help {
+      position: absolute; top: 10px; left: 12px; font-size: 12px; color: #b8c3e0; opacity:.8;
     }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="600" height="900"></canvas>
+  <div class="wrap">
+    <!-- Canvas 600x900 portrait -->
+    <canvas id="gameCanvas" width="600" height="900"></canvas>
 
-  <!-- HP Bar -->
-  <div class="hp-bar" style="top:40px;">
-    <div id="playerHP" class="hp-fill-player"></div>
-  </div>
-  <div class="hp-bar" style="top:70px;">
-    <div id="enemyHP" class="hp-fill-enemy"></div>
-  </div>
-
-  <!-- Joystick -->
-  <div class="ui">
-    <div class="joystick" id="joystick">
-      <div class="stick" id="stick"></div>
+    <!-- HUD: HP bars -->
+    <div class="bars">
+      <div class="bar">
+        <div id="playerFill" class="fill player-fill" style="width:100%"></div>
+        <div id="playerTxt" class="txt">Player HP</div>
+      </div>
+      <div class="bar">
+        <div id="enemyFill" class="fill enemy-fill" style="width:100%"></div>
+        <div id="enemyTxt" class="txt">Mahoraga HP</div>
+      </div>
     </div>
-  </div>
 
-  <!-- Skills -->
-  <div class="skills">
-    <div class="skill-btn" id="skill1">1</div>
-    <div class="skill-btn" id="skill2">2</div>
-    <div class="skill-btn" id="skill3">3</div>
-    <div class="skill-btn" id="skill4">4</div>
+    <div class="help">Gerak: Joystick • Skill: tombol kanan • Basic attack otomatis ketika dekat</div>
+
+    <!-- Status tray -->
+    <div id="statusTray" class="status-tray"></div>
+
+    <!-- Joystick -->
+    <div id="joystick" class="joystick">
+      <div id="stick" class="stick"></div>
+    </div>
+
+    <!-- Skills Cluster -->
+    <div class="skills">
+      <div id="skill1" class="skill-btn"><span>1</span><div class="cd"></div><div class="skill-label">Dash + Stun</div></div>
+      <div id="skill2" class="skill-btn"><span>2</span><div class="cd"></div><div class="skill-label">Slash Area</div></div>
+      <div id="skill3" class="skill-btn"><span>3</span><div class="cd"></div><div class="skill-label">Jump (Mark)</div></div>
+      <div id="skill4" class="skill-btn" style="grid-column: 2 / span 2;"><span>4</span><div class="cd"></div><div class="skill-label">Freeze → Burn</div></div>
+      <div id="basic"  class="skill-btn small" style="grid-column: 1;"><span>BA</span><div class="skill-label">Basic</div></div>
+    </div>
   </div>
 
   <script src="game.js"></script>
