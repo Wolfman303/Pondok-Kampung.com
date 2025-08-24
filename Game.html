@@ -1,0 +1,388 @@
+<!DOCTYPE html><html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tower Defense — Static JS</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #22d3ee;
+      --accent-2: #a78bfa;
+      --danger: #ef4444;
+      --ok: #10b981;
+      --tile: #1f2937;
+      --path: #374151;
+      --build: #111827;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; background: linear-gradient(180deg, #0b1220, #0f172a 60%);
+      color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
+      display: grid; place-items: center;
+    }
+    .shell {
+      display: grid; grid-template-columns: 1fr 340px; gap: 14px; width: min(1200px, 96vw);
+    }
+    .panel {
+      background: linear-gradient(180deg, #0b0f1a 0%, #0f172a 60%);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      overflow: hidden;
+    }
+    #gamewrap { position: relative; }
+    #game { display:block; width: 100%; height: auto; background:#0b1020; }
+    canvas { image-rendering: pixelated; }.hud { padding: 14px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,.06); background:#0c1222aa; backdrop-filter: blur(8px); position: sticky; top:0; z-index:5; }
+.badge { padding: 4px 8px; border-radius:999px; background:#0b1220; border:1px solid rgba(255,255,255,.08); color:var(--muted); font-size:12px; }
+.stat { display:flex; gap:8px; align-items:center; font-weight:600; }
+.stat b { color: var(--text); }
+
+.sidebar { display:flex; flex-direction:column; height: 100%; }
+.block { padding: 14px 16px; border-bottom:1px solid rgba(255,255,255,.06); }
+.title { font-size: 14px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-bottom: 8px; }
+.row { display:flex; gap: 8px; flex-wrap:wrap; }
+button, .btn {
+  appearance: none; border: 1px solid rgba(255,255,255,.08); background: #0d1426; color: var(--text);
+  padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: .15s transform, .2s background, .2s border;
+}
+button:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.18); }
+button:active { transform: translateY(0); }
+.btn-accent { background: linear-gradient(90deg, #06b6d4, #8b5cf6); border: 0; }
+.btn-danger { background: #2a1216; border-color:#7f1d1d; color:#fecaca; }
+.btn-ok { background: #10281f; border-color:#14532d; color:#bbf7d0; }
+
+.towercard { flex:1 1 48%; min-width: 140px; display:grid; gap:6px; padding:10px; border:1px dashed rgba(255,255,255,.14); border-radius:12px; background:#0a1222; }
+.towercard h4 { margin:0; font-size:14px; }
+.tiny { font-size:12px; color:var(--muted); }
+
+.sel { padding: 12px 14px; display:grid; gap:10px; }
+.gridnote { font-size:12px; color:#a1a1aa; }
+.footer { padding: 12px 14px; display:flex; justify-content:space-between; align-items:center; }
+
+.tooltip { position:absolute; pointer-events:none; background:#0b1220; border:1px solid rgba(255,255,255,.12); padding:6px 8px; border-radius:8px; font-size:12px; color:#cbd5e1; transform: translate(-50%, calc(-100% - 10px)); white-space:nowrap; }
+.circle { position:absolute; border-radius:50%; pointer-events:none; mix-blend-mode:screen; }
+
+.linklike { text-decoration: underline dotted; cursor: pointer; color: #93c5fd; }
+
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div id="gamewrap" class="panel">
+      <div class="hud">
+        <div class="row">
+          <div class="stat">💰 <b id="money">0</b></div>
+          <div class="stat">❤️ <b id="lives">20</b></div>
+          <div class="stat">🌊 <span class="badge">Wave <b id="wave">0</b></span></div>
+          <div class="stat">⚙️ <span class="badge" id="speed">1×</span></div>
+        </div>
+        <div class="row">
+          <button id="btnStart" class="btn-accent">Mulai Gelombang</button>
+          <button id="btnPause">Jeda</button>
+          <button id="btnSpeed">Kecepatan 2×</button>
+          <button id="btnClear" class="btn-danger">Reset</button>
+        </div>
+      </div>
+      <canvas id="game" width="960" height="576"></canvas>
+      <div id="tooltip" class="tooltip" style="display:none"></div>
+      <div id="rangeCircle" class="circle" style="display:none; border:1px solid rgba(34,211,238,.5); background: radial-gradient(closest-side, rgba(34,211,238,.18), rgba(34,211,238,.04) 70%, transparent 71%)"></div>
+    </div><div class="panel sidebar">
+  <div class="block">
+    <div class="title">Bangun Menara</div>
+    <div class="row" id="shop"></div>
+    <div class="gridnote">Taruh menara di ubin gelap, bukan di jalur abu-abu.</div>
+  </div>
+  <div class="block">
+    <div class="title">Menara Terpilih</div>
+    <div id="selected" class="sel tiny">Belum ada. Klik menara untuk pilih.</div>
+  </div>
+  <div class="block">
+    <div class="title">Simulasi</div>
+    <div class="row">
+      <button id="btnSave">Simpan</button>
+      <button id="btnLoad">Muat</button>
+      <button id="btnExport">Export JSON</button>
+      <button id="btnImport">Import JSON</button>
+    </div>
+  </div>
+  <div class="footer tiny">Made with ❤️ + Canvas. <span class="linklike" id="howto">Cara main?</span></div>
+</div>
+
+  </div><script>
+(() => {
+  // ===== Utils =====
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const now = () => performance.now();
+  const rnd = (a, b) => Math.random() * (b - a) + a;
+
+  // ===== Map/Path =====
+  const TILE = 48; // 20x12 grid on 960x576
+  const GRID_W = 20, GRID_H = 12;
+
+  // Waypoints for enemies to follow (grid coords -> pixel center)
+  const WPS = [
+    [0, 5],[6,5],[6,2],[12,2],[12,9],[17,9],[17,5],[20,5]
+  ].map(([gx, gy]) => ({ x: gx * TILE + TILE/2, y: gy * TILE + TILE/2 }));
+
+  // Build mask: tiles that are buildable (exclude a 2 tile radius around path for cleanliness)
+  const pathPoints = []; // approximate rasterized path for mask
+  for (let i=0;i<WPS.length-1;i++) {
+    const a=WPS[i], b=WPS[i+1];
+    const steps = Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)/TILE*2);
+    for (let s=0;s<=steps;s++) {
+      pathPoints.push({x:lerp(a.x,b.x,s/steps), y:lerp(a.y,b.y,s/steps)});
+    }
+  }
+  const buildable = Array.from({length: GRID_W*GRID_H}, (_,i)=>true);
+  const idx = (gx,gy)=>gy*GRID_W+gx;
+  for (let gy=0; gy<GRID_H; gy++) {
+    for (let gx=0; gx<GRID_W; gx++) {
+      const center = {x: gx*TILE+TILE/2, y: gy*TILE+TILE/2};
+      const near = pathPoints.some(p => Math.hypot(p.x-center.x, p.y-center.y) < TILE*0.9);
+      if (near) buildable[idx(gx,gy)] = false;
+    }
+  }
+
+  // ===== Entities =====
+  class Enemy {
+    constructor(hp, speed, reward=5, color="#93c5fd") {
+      this.maxHp = hp; this.hp = hp; this.speed = speed; this.reward = reward; this.color=color;
+      this.slowMul = 1; this.slowUntil = 0;
+      this.pos = {...WPS[0]}; this.wp = 1; this.alive = true; this.radius = 14;
+    }
+    step(dt, time) {
+      if (!this.alive) return;
+      if (this.slowUntil < time) this.slowMul = 1;
+      const target = WPS[this.wp];
+      const v = Math.atan2(target.y - this.pos.y, target.x - this.pos.x);
+      const sp = this.speed * this.slowMul * dt;
+      this.pos.x += Math.cos(v) * sp; this.pos.y += Math.sin(v) * sp;
+      if (Math.hypot(target.x - this.pos.x, target.y - this.pos.y) < 6) {
+        this.wp++;
+        if (this.wp >= WPS.length) this.alive = false, this.escaped = true;
+      }
+    }
+    hit(dmg) { this.hp -= dmg; if (this.hp <= 0) { this.alive=false; this.dead=true; } }
+    slow(m, dur, time) { this.slowMul = Math.min(this.slowMul, m); this.slowUntil = Math.max(this.slowUntil, time+dur); }
+    draw(c) {
+      c.save(); c.translate(this.pos.x, this.pos.y);
+      // body
+      c.fillStyle=this.color; c.beginPath(); c.arc(0,0,this.radius,0,Math.PI*2); c.fill();
+      // hp bar
+      c.fillStyle="#0b1220"; c.fillRect(-16,-24,32,6);
+      c.fillStyle="#22d3ee"; c.fillRect(-16,-24,32*(this.hp/this.maxHp),6);
+      c.restore();
+    }
+  }
+
+  class Projectile {
+    constructor(src, target, opts) {
+      this.pos={x:src.x,y:src.y}; this.target=target; this.speed=opts.speed||420; this.dmg=opts.dmg||5; this.splash=opts.splash||0; this.slow=opts.slow||null; this.alive=true; this.color=opts.color||"#22d3ee"; this.radius=4;
+    }
+    step(dt) {
+      if (!this.alive || !this.target.alive) { this.alive=false; return; }
+      const v = Math.atan2(this.target.pos.y - this.pos.y, this.target.pos.x - this.pos.x);
+      this.pos.x += Math.cos(v) * this.speed * dt;
+      this.pos.y += Math.sin(v) * this.speed * dt;
+      if (dist(this.pos, this.target.pos) < this.target.radius) {
+        this.alive=false; this.target.hit(this.dmg);
+        if (this.slow) this.target.slow(this.slow.m, this.slow.d, performance.now());
+      }
+    }
+    draw(c) {
+      c.save(); c.translate(this.pos.x, this.pos.y);
+      c.fillStyle=this.color; c.beginPath(); c.arc(0,0,this.radius,0,Math.PI*2); c.fill();
+      c.restore();
+    }
+  }
+
+  // Tower base
+  class Tower {
+    constructor(gx,gy) { this.gx=gx; this.gy=gy; this.x=gx*TILE+TILE/2; this.y=gy*TILE+TILE/2; this.range=120; this.rate=1; this.cool=0; this.level=1; this.type='Base'; this.damage=5; this.cost=20; this.sellPct=0.7; this.selected=false; }
+    canTarget(e) { return e.alive && dist({x:this.x,y:this.y}, e.pos) <= this.range; }
+    acquire(enemies) { return enemies.find(e=>this.canTarget(e)); }
+    fire(target, game) { game.fxPulse(this.x,this.y); return new Projectile({x:this.x,y:this.y}, target, {dmg:this.damage, speed:440}); }
+    step(dt, game) {
+      this.cool -= dt; if (this.cool<=0) {
+        const t = this.acquire(game.enemies);
+        if (t) { const p = this.fire(t, game); if (p) game.projectiles.push(p); this.cool = 1/this.rate; }
+      }
+    }
+    draw(c) {
+      c.save(); c.translate(this.x,this.y);
+      c.fillStyle="#111827"; c.strokeStyle="#22d3ee"; c.lineWidth=2;
+      c.beginPath(); c.arc(0,0,16,0,Math.PI*2); c.fill(); c.stroke();
+      c.fillStyle="#cbd5e1"; c.fillRect(-6,-18,12,8);
+      c.restore();
+    }
+    ui() {
+      return {
+        header: `${this.type} Lv.${this.level}`,
+        lines: [
+          `Atk: ${this.damage.toFixed(0)}`,
+          `Range: ${this.range.toFixed(0)}`,
+          `Rate: ${this.rate.toFixed(2)}/s`,
+        ],
+        upgrades: [
+          { key:'damage', label:'+Damage', cost: Math.round(12*this.level), apply: t=>t.damage+=4 },
+          { key:'range', label:'+Range', cost: Math.round(10*this.level), apply: t=>t.range+=14 },
+          { key:'rate', label:'+Rate', cost: Math.round(14*this.level), apply: t=>t.rate+=0.25 },
+        ]
+      };
+    }
+  }
+
+  class Gunner extends Tower {
+    constructor(gx,gy){ super(gx,gy); this.type='Gunner'; this.cost=50; this.damage=8; this.rate=1.8; this.range=132; }
+    draw(c){ c.save(); c.translate(this.x,this.y); c.fillStyle="#0f172a"; c.strokeStyle="#38bdf8"; c.lineWidth=2; c.beginPath(); c.arc(0,0,16,0,Math.PI*2); c.fill(); c.stroke(); c.fillStyle="#38bdf8"; c.fillRect(-10,-6,20,12); c.restore(); }
+  }
+  class Sniper extends Tower {
+    constructor(gx,gy){ super(gx,gy); this.type='Sniper'; this.cost=80; this.damage=24; this.rate=0.7; this.range=260; }
+    fire(t, game){ game.fxMuzzle(this.x,this.y); return new Projectile({x:this.x,y:this.y}, t, {dmg:this.damage, speed:900, color:'#a78bfa'}); }
+    draw(c){ c.save(); c.translate(this.x,this.y); c.fillStyle="#0f172a"; c.strokeStyle="#a78bfa"; c.lineWidth=2; c.beginPath(); c.rect(-16,-16,32,32); c.fill(); c.stroke(); c.fillStyle="#a78bfa"; c.fillRect(-14,-4,28,8); c.restore(); }
+  }
+  class Splash extends Tower {
+    constructor(gx,gy){ super(gx,gy); this.type='Splash'; this.cost=90; this.damage=16; this.rate=1.1; this.range=150; this.blast=54; }
+    fire(t, game){
+      const proj = new Projectile({x:this.x,y:this.y}, t, {dmg:this.damage, speed:380, color:'#f59e0b'});
+      const oldStep = proj.step.bind(proj);
+      proj.step = (dt)=>{ const preAlive = proj.alive; oldStep(dt); if(preAlive && !proj.alive){ game.fxExplosion(t.pos.x,t.pos.y,this.blast); game.enemies.forEach(e=>{ if(dist(e.pos,t.pos)<=this.blast) e.hit(this.damage*0.7); }); } };
+      return proj;
+    }
+    draw(c){ c.save(); c.translate(this.x,this.y); c.fillStyle="#0f172a"; c.strokeStyle="#f59e0b"; c.lineWidth=2; c.beginPath(); c.arc(0,0,18,0,Math.PI*2); c.fill(); c.stroke(); c.beginPath(); c.arc(0,0,8,0,Math.PI*2); c.stroke(); c.restore(); }
+  }
+  class Frost extends Tower {
+    constructor(gx,gy){ super(gx,gy); this.type='Frost'; this.cost=70; this.damage=6; this.rate=1.2; this.range=140; this.slow= {m:0.55, d:1200}; }
+    fire(t, game){ game.fxPulse(this.x,this.y,'#67e8f9'); return new Projectile({x:this.x,y:this.y}, t, {dmg:this.damage, speed:420, color:'#67e8f9', slow: this.slow}); }
+    draw(c){ c.save(); c.translate(this.x,this.y); c.fillStyle="#052e3b"; c.strokeStyle="#67e8f9"; c.lineWidth=2; c.beginPath(); c.arc(0,0,16,0,Math.PI*2); c.fill(); c.stroke(); c.beginPath(); c.moveTo(-10,0); c.lineTo(0,-10); c.lineTo(10,0); c.lineTo(0,10); c.closePath(); c.stroke(); c.restore(); }
+  }
+
+  const TowerTypes = [
+    { key:'Gunner', cls:Gunner, name:'Gunner', cost:50, desc:'Serbaguna. DPS stabil.'},
+    { key:'Sniper', cls:Sniper, name:'Sniper', cost:80, desc:'Jangkauan jauh, damage besar.'},
+    { key:'Splash', cls:Splash, name:'Splash', cost:90, desc:'Damage area (AoE).'},
+    { key:'Frost', cls:Frost, name:'Frost', cost:70, desc:'Perlambat musuh.'},
+  ];
+
+  // ===== Game State =====
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const moneyEl = document.getElementById('money');
+  const livesEl = document.getElementById('lives');
+  const waveEl = document.getElementById('wave');
+  const speedEl = document.getElementById('speed');
+  const tooltip = document.getElementById('tooltip');
+  const circle = document.getElementById('rangeCircle');
+
+  const game = {
+    enemies: [], projectiles: [], towers: [], effects: [], money: 150, lives: 20, wave: 0, running: true, speed: 1,
+    spawnQ: [],
+    addMoney(v){ this.money+=v; },
+    damageBase(){ this.lives--; if (this.lives<=0) this.gameOver(); },
+    gameOver(){ this.running=false; alert('Game Over! Tekan Reset untuk coba lagi.'); },
+    startWave(){ if (this.spawning) return; this.wave++; waveEl.textContent=this.wave; this.queueWave(this.wave); this.spawning=true; },
+    queueWave(n){
+      // scalable composition
+      const base = Math.min(10+n*2, 40);
+      const hp = 28 + n*6; const spd = 48 + n*2; const reward = 5 + Math.floor(n/2);
+      const fast = Math.max(0, Math.floor(n/3)-1);
+      const bulky = Math.max(0, Math.floor(n/4));
+      const mix = [];
+      for(let i=0;i<base;i++) mix.push({hp,spd,reward,color:'#93c5fd'});
+      for(let i=0;i<fast;i++) mix.push({hp: Math.round(hp*0.8), spd: spd*1.5, reward: reward, color:'#7dd3fc'});
+      for(let i=0;i<bulky;i++) mix.push({hp: Math.round(hp*2.2), spd: spd*0.75, reward: reward+2, color:'#60a5fa'});
+      // shuffle and schedule
+      for (let i=0;i<mix.length;i++) {
+        const m = mix[i];
+        this.spawnQ.push({ at: now() + 800 + i*550, spec: m });
+      }
+    },
+    fxPulse(x,y,color='#22d3ee'){ this.effects.push({type:'pulse',x,y,r:6,life:220,color}); },
+    fxExplosion(x,y,R){ this.effects.push({type:'boom',x,y,r:10,R,life:380}); },
+  };
+
+  // ===== UI Shop =====
+  const shop = document.getElementById('shop');
+  TowerTypes.forEach(t => {
+    const el = document.createElement('div'); el.className='towercard';
+    el.innerHTML = `<h4>${t.name}</h4><div class="tiny">${t.desc}</div><div class="row"><span class="badge">💵 ${t.cost}</span><button data-key="${t.key}">Build</button></div>`;
+    const btn = el.querySelector('button');
+    btn.addEventListener('click', ()=> setPlacing(t));
+    shop.appendChild(el);
+  });
+
+  let placing = null; // {key, cls, cost}
+  function setPlacing(t){ placing=t; tooltip.style.display='block'; tooltip.textContent=`Taruh ${t.name} — biaya ${t.cost}`; circle.style.display='block'; }
+
+  // ===== Mouse =====
+  const mouse = {x:0,y:0,gx:0,gy:0};
+  canvas.addEventListener('mousemove', (e)=>{
+    const r = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - r.left) * (canvas.width / r.width);
+    mouse.y = (e.clientY - r.top) * (canvas.height / r.height);
+    mouse.gx = clamp(Math.floor(mouse.x / TILE), 0, GRID_W-1);
+    mouse.gy = clamp(Math.floor(mouse.y / TILE), 0, GRID_H-1);
+
+    tooltip.style.left = (e.clientX) + 'px';
+    tooltip.style.top = (e.clientY - 8) + 'px';
+
+    circle.style.left = (mouse.gx*TILE + TILE/2) + 'px';
+    circle.style.top = (mouse.gy*TILE + TILE/2) + 'px';
+    const rpx = placing ? (new placing.cls(0,0)).range : 0;
+    circle.style.width = rpx*2 + 'px'; circle.style.height=rpx*2+'px';
+    circle.style.transform = `translate(${mouse.gx*TILE + TILE/2 - rpx}px, ${mouse.gy*TILE + TILE/2 - rpx}px)`;
+  });
+  canvas.addEventListener('mouseleave', ()=>{ tooltip.style.display='none'; circle.style.display='none'; });
+  canvas.addEventListener('mouseenter', ()=>{ if (placing) { tooltip.style.display='block'; circle.style.display='block'; }});
+
+  canvas.addEventListener('click', ()=>{
+    // If selecting a tower
+    const hit = game.towers.find(t => t.gx===mouse.gx && t.gy===mouse.gy);
+    if (hit) { selectTower(hit); return; }
+
+    if (!placing) return;
+    if (!buildable[idx(mouse.gx, mouse.gy)]) { flashMsg('Tak bisa bangun di jalur!'); return; }
+    if (game.towers.some(t=> t.gx===mouse.gx && t.gy===mouse.gy)) { flashMsg('Ubin sudah terpakai.'); return; }
+    if (game.money < placing.cost) { flashMsg('Uang tidak cukup.'); return; }
+    game.money -= placing.cost; game.towers.push(new placing.cls(mouse.gx, mouse.gy)); updateHUD();
+  });
+
+  function flashMsg(msg){ tooltip.textContent = msg; tooltip.style.display='block'; setTimeout(()=>{ if (placing) tooltip.textContent=`Taruh ${placing.name} — biaya ${placing.cost}`; else tooltip.style.display='none'; }, 900); }
+
+  // ===== Selection Panel =====
+  const sel = document.getElementById('selected');
+  let selected = null;
+  function selectTower(t){ selected=t; renderSelected(); drawGhostRange(t); }
+  function drawGhostRange(t){ circle.style.display='block'; circle.style.width=t.range*2+'px'; circle.style.height=t.range*2+'px'; circle.style.transform = `translate(${t.x - t.range}px, ${t.y - t.range}px)`; }
+  function renderSelected(){
+    if (!selected) { sel.innerHTML = 'Belum ada. Klik menara untuk pilih.'; return; }
+    const info = selected.ui();
+    const sell = Math.round((selected.cost + (selected.level-1)*10) * selected.sellPct);
+    sel.innerHTML = `
+      <div><b>${info.header}</b></div>
+      ${info.lines.map(l=>`<div>${l}</div>`).join('')}
+      <div class="row" style="margin-top:8px">${info.upgrades.map((u,i)=>`<button data-up="${i}">${u.label} (${u.cost})</button>`).join('')}</div>
+      <div class="row"><button id="btnSell" class="btn-danger">Jual (+${sell})</button></div>
+    `;
+    sel.querySelectorAll('[data-up]').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        const i = +e.currentTarget.getAttribute('data-up');
+        const up = info.upgrades[i];
+        if (game.money < up.cost) { flashMsg('Uang tidak cukup.'); return; }
+        up.apply(selected); selected.level++; game.money -= up.cost; updateHUD(); renderSelected();
+      });
+    });
+    sel.querySelector('#btnSell').addEventListener('click', ()=>{
+      const val = Math.round((selected.cost + (selected.level-1)*10) * selected.sellPct);
+      game.money += val; game.towers = game.towers.filter(t=>t!==selected); selected=null; updateHUD(); renderSelected();
+    });
+  }
+
+  // ===== Controls =====
+  document.getElementById('btnStart').onclick = ()=> game.startWave();
+  document.getElementById(
