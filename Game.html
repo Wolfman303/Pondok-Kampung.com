@@ -385,5 +385,129 @@ button:active { transform: translateY(0); }
 
   // ===== Controls =====
   document.getElementById('btnStart').onclick = ()=> game.startWave();
-  document.getElementById(
-    </script>
+  document.getElementById('btnPause').onclick = ()=> { game.running = !game.running; };
+  document.getElementById('btnSpeed').onclick = ()=> { game.speed = game.speed===1?2:game.speed===2?3:1; speedEl.textContent = game.speed+"×"; document.getElementById('btnSpeed').textContent = 'Kecepatan ' + (game.speed===1? '2×' : game.speed===2? '3×' : '1×'); };
+  document.getElementById('btnClear').onclick = ()=> { localStorage.removeItem('td_save'); location.reload(); };
+
+  // Save/Load
+  document.getElementById('btnSave').onclick = ()=>{
+    const save = {
+      money: game.money, lives: game.lives, wave: game.wave,
+      towers: game.towers.map(t=>({type:t.type,gx:t.gx,gy:t.gy, level:t.level, stats:{damage:t.damage, range:t.range, rate:t.rate}}))
+    };
+    localStorage.setItem('td_save', JSON.stringify(save));
+    alert('Tersimpan ke LocalStorage.');
+  };
+  document.getElementById('btnLoad').onclick = ()=>{
+    const raw = localStorage.getItem('td_save'); if (!raw) return alert('Belum ada save.');
+    const data = JSON.parse(raw);
+    Object.assign(game, {money:data.money, lives:data.lives, wave:data.wave});
+    game.towers = data.towers.map(t=>{ const cls = TowerTypes.find(x=>x.name===t.type).cls; const o = new cls(t.gx,t.gy); o.level=t.level; o.damage=t.stats.damage; o.range=t.stats.range; o.rate=t.stats.rate; return o; });
+    updateHUD(); renderSelected();
+  };
+  document.getElementById('btnExport').onclick = ()=>{
+    const save = {
+      money: game.money, lives: game.lives, wave: game.wave,
+      towers: game.towers.map(t=>({type:t.type,gx:t.gx,gy:t.gy, level:t.level, stats:{damage:t.damage, range:t.range, rate:t.rate}}))
+    };
+    const blob = new Blob([JSON.stringify(save, null, 2)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='td_save.json'; a.click(); URL.revokeObjectURL(a.href);
+  };
+  document.getElementById('btnImport').onclick = ()=>{
+    const inp = document.createElement('input'); inp.type='file'; inp.accept='.json,application/json';
+    inp.onchange = ()=>{
+      const f = inp.files[0]; if (!f) return; const r = new FileReader(); r.onload = ()=>{ try { const data = JSON.parse(r.result);
+        Object.assign(game, {money:data.money, lives:data.lives, wave:data.wave});
+        game.towers = data.towers.map(t=>{ const cls = TowerTypes.find(x=>x.name===t.type).cls; const o = new cls(t.gx,t.gy); o.level=t.level; o.damage=t.stats.damage; o.range=t.stats.range; o.rate=t.stats.rate; return o; });
+        updateHUD(); renderSelected();
+      } catch(e){ alert('File tidak valid'); } }; r.readAsText(f);
+    };
+    inp.click();
+  };
+
+  document.getElementById('howto').onclick = ()=>{
+    alert('Cara main:\n1) Pilih menara di panel kiri lalu klik pada grid gelap untuk menaruh.\n2) Tekan "Mulai Gelombang" berulang untuk memanggil musuh.\n3) Klik menara untuk upgrade atau jual.\n4) Bila musuh lolos sampai ujung, nyawa berkurang. Habis = Game Over.');
+  };
+
+  function updateHUD(){ moneyEl.textContent=game.money; livesEl.textContent=game.lives; waveEl.textContent=game.wave; speedEl.textContent=game.speed+'×'; }
+
+  // ===== Spawner & Loop =====
+  let last = now();
+  function tick(){
+    const t = now();
+    let dt = (t - last) / 1000 * (game.running? game.speed : 0);
+    dt = Math.min(dt, 0.05*game.speed); // clamp huge stalls
+    last = t;
+
+    // spawn
+    while (game.spawnQ.length && game.spawnQ[0].at <= t) {
+      const spec = game.spawnQ.shift().spec;
+      game.enemies.push(new Enemy(spec.hp, spec.spd/60, spec.reward, spec.color));
+    }
+    if (game.spawning && game.spawnQ.length===0 && game.enemies.length===0) game.spawning=false, game.addMoney(30), updateHUD();
+
+    // step
+    game.enemies.forEach(e=> e.step(dt, t));
+    game.towers.forEach(T=> T.step(dt, game));
+    game.projectiles.forEach(p=> p.step(dt));
+
+    // resolve deaths/escapes
+    for (const e of game.enemies) {
+      if (!e.alive && e.dead) { game.addMoney(e.reward); }
+      if (!e.alive && e.escaped) { game.damageBase(); }
+    }
+    game.enemies = game.enemies.filter(e=>e.alive);
+    game.projectiles = game.projectiles.filter(p=>p.alive);
+
+    draw();
+    requestAnimationFrame(tick);
+  }
+
+  // ===== Rendering =====
+  function drawGrid(c){
+    // tiles
+    for (let gy=0; gy<GRID_H; gy++) {
+      for (let gx=0; gx<GRID_W; gx++) {
+        const x=gx*TILE, y=gy*TILE;
+        c.fillStyle = buildable[idx(gx,gy)] ? '#0f1628' : '#2c3342';
+        c.fillRect(x,y,TILE,TILE);
+        c.strokeStyle = 'rgba(255,255,255,.04)'; c.strokeRect(x+0.5,y+0.5,TILE-1,TILE-1);
+      }
+    }
+    // draw path line
+    c.strokeStyle='#111827'; c.lineWidth=24; c.lineCap='round'; c.beginPath(); c.moveTo(WPS[0].x, WPS[0].y); for(let i=1;i<WPS.length;i++) c.lineTo(WPS[i].x,WPS[i].y); c.stroke();
+    c.strokeStyle='#374151'; c.lineWidth=20; c.beginPath(); c.moveTo(WPS[0].x, WPS[0].y); for(let i=1;i<WPS.length;i++) c.lineTo(WPS[i].x,WPS[i].y); c.stroke();
+  }
+
+  function drawEffects(c, dt){
+    const keep=[]; for(const fx of game.effects){
+      fx.life -= dt*1000; if (fx.life>0) keep.push(fx);
+      if (fx.type==='pulse'){
+        const r = (6 + (220-fx.life)*0.06);
+        c.save(); c.globalAlpha = clamp(fx.life/220, 0, 1); c.strokeStyle=fx.color||'#22d3ee'; c.lineWidth=2; c.beginPath(); c.arc(fx.x,fx.y,r,0,Math.PI*2); c.stroke(); c.restore();
+      } else if (fx.type==='boom'){
+        const t = clamp(1 - fx.life/380, 0, 1), r = lerp(10, fx.R, t);
+        c.save(); c.globalAlpha = 0.5*(1-t); c.fillStyle='#f59e0b'; c.beginPath(); c.arc(fx.x,fx.y,r,0,Math.PI*2); c.fill(); c.restore();
+      }
+    } game.effects = keep;
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawGrid(ctx);
+
+    // towers under-range ring for selection hover
+    for (const t of game.towers) t.draw(ctx);
+    for (const e of game.enemies) e.draw(ctx);
+    for (const p of game.projectiles) p.draw(ctx);
+
+    drawEffects(ctx, (now()-last)/1000);
+  }
+
+  // ===== Init =====
+  updateHUD();
+  tick();
+})();
+</script>
+</body>
+</html>
