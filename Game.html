@@ -508,6 +508,13 @@ button:active { transform: translateY(0); }
   updateHUD();
   tick();
 })();
+
+    // Mulai otomatis wave pertama begitu halaman dibuka
+window.onload = () => {
+  if (typeof startGame === "function") {
+    startGame();
+  }
+};
 </script>
 </body>
 </html>
