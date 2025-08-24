@@ -1,79 +1,112 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aegis Path TD</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=portrait">
+  <title>MOBA Duel - Player vs Mahoraga</title>
   <style>
-    :root{ --bg:#0b1020; --panel:#121832; --accent:#5bd4ff; --text:#eef2ff; --muted:#9aa4c7; --warn:#ffcf5b; }
-    *{ box-sizing:border-box; }
-    body{ margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; background:linear-gradient(135deg,#0b1020,#151c3f); color:var(--text); }
-    .wrap{ display:grid; grid-template-columns: 280px 1fr; gap:16px; padding:16px; }
-    .panel{ background:var(--panel); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
-    h1{ font-size:20px; margin:0 0 8px; letter-spacing:.3px; }
-    .money, .lives, .wave{ font-weight:600; }
-    .muted{ color:var(--muted); font-size:12px; }
-    .btn{ appearance:none; border:none; padding:10px 12px; border-radius:12px; background:#1a2250; color:#e8ecff; cursor:pointer; font-weight:600; }
-    .btn:hover{ filter:brightness(1.1); }
-    .btn-row{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 12px; }
-    .tower-btn{ display:flex; align-items:center; justify-content:space-between; width:100%; padding:10px 12px; background:#17204a; border:1px solid rgba(255,255,255,.06); }
-    .tower-btn small{ color:var(--muted); font-weight:500; }
-    .notice{ margin-top:8px; min-height:20px; color:var(--warn); font-weight:600; }
-    canvas{ width:960px; height:640px; image-rendering:pixelated; border-radius:16px; border:1px solid rgba(255,255,255,.08); background:#0a0f26; }
-    .right{ display:flex; flex-direction:column; gap:16px; }
-    .hud{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
-    .stats{ display:flex; gap:12px; align-items:center; }
-    .chip{ background:#1b2558; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.08); font-weight:700; }
-    .sel-panel{ display:none; gap:8px; }
-    .sel-panel.active{ display:flex; }
+    body {
+      margin: 0;
+      background: #111;
+      color: white;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: #222;
+      border: 3px solid #555;
+    }
+    .ui {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+    }
+    .joystick {
+      width: 120px;
+      height: 120px;
+      border: 2px solid #888;
+      border-radius: 50%;
+      position: relative;
+      background: rgba(255,255,255,0.1);
+    }
+    .stick {
+      width: 50px;
+      height: 50px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 50%;
+      position: absolute;
+      top: 35px;
+      left: 35px;
+    }
+    .skills {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      display: flex;
+      gap: 10px;
+    }
+    .skill-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      border: 2px solid #aaa;
+      text-align: center;
+      line-height: 60px;
+      font-size: 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .hp-bar {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      height: 20px;
+      background: #444;
+      border: 2px solid #999;
+    }
+    .hp-fill-player {
+      height: 100%;
+      background: linear-gradient(90deg, #4caf50, #1b5e20);
+      width: 100%;
+    }
+    .hp-fill-enemy {
+      height: 100%;
+      background: linear-gradient(90deg, #f44336, #b71c1c);
+      width: 100%;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <aside class="panel">
-      <h1>Aegis Path TD</h1>
-      <div class="muted">Bangun tower di luar jalur bercahaya. Klik Start untuk memulai gelombang.</div>
-      <div style="height:8px"></div>
-      <div class="btn-row">
-        <button id="startBtn" class="btn">▶ Start Wave</button>
-        <button id="pauseBtn" class="btn">⏸ Pause</button>
-        <button id="speed1" class="btn">1×</button>
-        <button id="speed2" class="btn">2×</button>
-        <button id="speed4" class="btn">4×</button>
-      </div>
+  <canvas id="gameCanvas" width="600" height="900"></canvas>
 
-      <div class="muted">Build Towers</div>
-
-      <button class="tower-btn" data-type="gun">Gun <small>100</small></button>
-      <button class="tower-btn" data-type="cannon">Cannon <small>150</small></button>
-      <button class="tower-btn" data-type="frost">Frost <small>120</small></button>
-      <button class="tower-btn" data-type="laser">Laser <small>200</small></button>
-
-      <div class="notice" id="notice"></div>
-
-      <div style="height:8px"></div>
-      <div class="muted">Tips: Klik tower untuk Upgrade/Jual. Right-click untuk batal saat build.</div>
-    </aside>
-
-    <main class="right">
-      <div class="panel hud">
-        <div class="stats">
-          <span class="chip">💰 <span id="money">0</span></span>
-          <span class="chip">❤️ <span id="lives">0</span></span>
-          <span class="chip">🌊 Wave <span id="wave">0</span>/20</span>
-          <span class="chip">⏱️ <span id="speed">1×</span></span>
-        </div>
-        <div class="sel-panel" id="selPanel">
-          <span id="selInfo" class="muted"></span>
-          <button id="upgradeBtn" class="btn">Upgrade</button>
-          <button id="sellBtn" class="btn">Jual</button>
-        </div>
-      </div>
-
-      <canvas id="game" width="960" height="640"></canvas>
-    </main>
+  <!-- HP Bar -->
+  <div class="hp-bar" style="top:40px;">
+    <div id="playerHP" class="hp-fill-player"></div>
+  </div>
+  <div class="hp-bar" style="top:70px;">
+    <div id="enemyHP" class="hp-fill-enemy"></div>
   </div>
 
-  <script src="Game.js"></script>
+  <!-- Joystick -->
+  <div class="ui">
+    <div class="joystick" id="joystick">
+      <div class="stick" id="stick"></div>
+    </div>
+  </div>
+
+  <!-- Skills -->
+  <div class="skills">
+    <div class="skill-btn" id="skill1">1</div>
+    <div class="skill-btn" id="skill2">2</div>
+    <div class="skill-btn" id="skill3">3</div>
+    <div class="skill-btn" id="skill4">4</div>
+  </div>
+
+  <script src="game.js"></script>
 </body>
 </html>
