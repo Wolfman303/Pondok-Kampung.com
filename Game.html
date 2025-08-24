@@ -9,7 +9,15 @@
     :root {
       --hud-bg: rgba(0,0,0,.35);
       --hud-br: 14px;
+      --skill-size: 72px;
+      --skill-small: 62px;
+      --joystick-size: 140px;
+      --stick-size: 60px;
+      --btn-bottom-offset: calc(max(16px, env(safe-area-inset-bottom, 16px)));
+      --btn-right-offset: calc(max(12px, env(safe-area-inset-right, 12px)));
+      --joy-left-offset: calc(max(12px, env(safe-area-inset-left, 12px)));
     }
+
     * { box-sizing: border-box; }
     html, body {
       margin: 0; padding: 0; background: #0e0f13; color: #fff; font-family: system-ui, Arial;
@@ -18,16 +26,21 @@
     .wrap {
       position: relative; height: 100vh; width: 100vw; overflow: hidden;
       display: flex; align-items: center; justify-content: center;
+      /* ensure some inner padding so UI doesn't hug browser chrome */
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6vh);
     }
     canvas {
       background: radial-gradient(ellipse at center, #1b1e27 0%, #12141a 70%);
       border: 3px solid #222831; border-radius: 18px; box-shadow: 0 10px 40px rgba(0,0,0,.45);
+      max-width: 96vw;
+      height: auto;
     }
 
     /* HP bars */
     .bars {
       position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: min(92vw, 560px);
       display: grid; gap: 8px;
+      z-index: 30;
     }
     .bar {
       width: 100%; height: 18px; border-radius: 999px; overflow: hidden; border: 2px solid #3a3f52;
@@ -39,42 +52,52 @@
     .bar .txt {
       position: absolute; inset: 0; display:flex; align-items:center; justify-content:center;
       font-size: 12px; color: #e9eef6; text-shadow: 0 1px 2px rgba(0,0,0,.8);
-      mix-blend-mode: difference; pointer-events: none;
+      pointer-events: none;
     }
 
     /* Joystick */
     .joystick {
-      position: absolute; left: 16px; bottom: 16px; width: 140px; height: 140px;
+      position: absolute;
+      left: var(--joy-left-offset);
+      bottom: calc(var(--btn-bottom-offset));
+      width: var(--joystick-size);
+      height: var(--joystick-size);
       border-radius: 50%; background: var(--hud-bg); border: 2px solid #2a2f3f;
       backdrop-filter: blur(6px);
+      z-index: 40;
     }
     .stick {
-      position: absolute; width: 60px; height: 60px; border-radius: 50%;
-      background: rgba(255,255,255,.25); top: 40px; left: 40px;
+      position: absolute; width: var(--stick-size); height: var(--stick-size); border-radius: 50%;
+      background: rgba(255,255,255,.25); top: calc((var(--joystick-size) - var(--stick-size))/2);
+      left: calc((var(--joystick-size) - var(--stick-size))/2);
       border: 2px solid rgba(255,255,255,.35);
     }
 
     /* Skills cluster */
     .skills {
-  position: absolute;
-  right: max(16px, env(safe-area-inset-right));
-  bottom: max(20px, env(safe-area-inset-bottom));
-  display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(3, 72px);
-  grid-template-rows: 72px 72px;
-}
+      position: absolute;
+      right: var(--btn-right-offset);
+      /* lift skills a bit above bottom safe area so buttons don't touch nav bar */
+      bottom: calc(var(--btn-bottom-offset) + 6vh);
+      display: grid; gap: 10px;
+      grid-template-columns: repeat(3, var(--skill-size));
+      grid-template-rows: var(--skill-size) var(--skill-size);
+      z-index: 40;
+      align-items: end;
+    }
     .skill-btn {
-      width: 72px; height: 72px; border-radius: 50%; background: var(--hud-bg);
+      width: var(--skill-size); height: var(--skill-size); border-radius: 50%; background: var(--hud-bg);
       border: 2px solid #2a2f3f; display:flex; align-items:center; justify-content:center;
       font-weight: 700; font-size: 20px; position: relative; cursor: pointer;
       backdrop-filter: blur(6px);
     }
     .skill-btn:active { transform: scale(.98); }
-    .skill-btn.small { width: 62px; height: 62px; }
+    .skill-btn.small { width: var(--skill-small); height: var(--skill-small); font-size: 14px; }
     .skill-label {
-      position: absolute; bottom: -18px; font-size: 11px; color:#aeb6cf; width: 100%;
+      position: absolute; bottom: -22px; font-size: 11px; color:#aeb6cf; width: 120%;
+      left: 50%; transform: translateX(-50%);
       text-align: center;
+      pointer-events: none;
     }
     .cd {
       position: absolute; inset: 0; border-radius: 50%; background: rgba(0,0,0,.55);
@@ -85,7 +108,7 @@
     /* Status tray */
     .status-tray {
       position: absolute; top: 40px; right: 16px; display: flex; gap: 8px; flex-wrap: wrap;
-      max-width: 40vw;
+      max-width: 40vw; z-index: 30;
     }
     .badge {
       padding: 6px 10px; font-size: 12px; border-radius: 999px; border: 1px solid #3a3f52;
@@ -94,7 +117,30 @@
 
     /* Small help */
     .help {
-      position: absolute; top: 10px; left: 12px; font-size: 12px; color: #b8c3e0; opacity:.8;
+      position: absolute; top: 10px; left: 12px; font-size: 12px; color: #b8c3e0; opacity:.8; z-index:30;
+    }
+
+    /* Responsive adjustments for short/tall screens */
+    @media (max-height: 820px) {
+      :root {
+        --skill-size: 64px;
+        --skill-small: 56px;
+        --joystick-size: 120px;
+        --stick-size: 52px;
+      }
+      .skills { bottom: calc(var(--btn-bottom-offset) + 8vh); }
+      .skill-label { bottom: -18px; font-size: 10px; }
+    }
+
+    @media (max-width: 420px) {
+      :root {
+        --skill-size: 60px;
+        --skill-small: 52px;
+        --joystick-size: 110px;
+        --stick-size: 48px;
+      }
+      .skills { gap: 8px; bottom: calc(var(--btn-bottom-offset) + 8vh); right: calc(var(--btn-right-offset) + 6px); }
+      .bar .txt { font-size: 11px; }
     }
   </style>
 </head>
@@ -121,12 +167,12 @@
     <div id="statusTray" class="status-tray"></div>
 
     <!-- Joystick -->
-    <div id="joystick" class="joystick">
+    <div id="joystick" class="joystick" aria-label="joystick">
       <div id="stick" class="stick"></div>
     </div>
 
     <!-- Skills Cluster -->
-    <div class="skills">
+    <div class="skills" aria-hidden="false">
       <div id="skill1" class="skill-btn"><span>1</span><div class="cd"></div><div class="skill-label">Dash + Stun</div></div>
       <div id="skill2" class="skill-btn"><span>2</span><div class="cd"></div><div class="skill-label">Slash Area</div></div>
       <div id="skill3" class="skill-btn"><span>3</span><div class="cd"></div><div class="skill-label">Jump (Mark)</div></div>
