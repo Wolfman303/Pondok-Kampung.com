@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Duel Moba: Player vs Mahoraga</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+            user-select: none;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .arena {
+            width: 100%;
+            height: 70%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%2322283a"/><path d="M0,0 L100,100 M100,0 L0,100" stroke="%23314264" stroke-width="2"/></svg>');
+            position: relative;
+            border-bottom: 3px solid #4a5568;
+        }
+        
+        .wall {
+            position: absolute;
+            background-color: #4a5568;
+            border: 2px solid #2d3748;
+        }
+        
+        .wall-1 {
+            width: 80px;
+            height: 20px;
+            top: 30%;
+            left: 20%;
+        }
+        
+        .wall-2 {
+            width: 20px;
+            height: 80px;
+            top: 20%;
+            left: 60%;
+        }
+        
+        .wall-3 {
+            width: 100px;
+            height: 20px;
+            top: 60%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .character {
+            position: absolute;
+            transition: transform 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .player {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            border-radius: 50%;
+            border: 3px solid #1f618d;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.7);
+        }
+        
+        .enemy {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border-radius: 50%;
+            border: 3px solid #922b21;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.7);
+        }
+        
+        .health-bar {
+            width: 60px;
+            height: 6px;
+            background-color: #444;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            transition: width 0.3s;
+        }
+        
+        .enemy .health-fill {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+        }
+        
+        .damage-text {
+            position: absolute;
+            color: #ff4757;
+            font-weight: bold;
+            font-size: 14px;
+            pointer-events: none;
+            animation: floatUp 1s forwards;
+            z-index: 20;
+        }
+        
+        .heal-text {
+            position: absolute;
+            color: #2ed573;
+            font-weight: bold;
+            font-size: 14px;
+            pointer-events: none;
+            animation: floatUp 1s forwards;
+            z-index: 20;
+        }
+        
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+        }
+        
+        .controls {
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(to top, #1e1e2e, #2d3748);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            padding: 10px;
+            border-top: 3px solid #4a5568;
+        }
+        
+        .joystick-area {
+            width: 120px;
+            height: 120px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            position: relative;
+            align-self: flex-start;
+            margin-left: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .joystick {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .skills {
+            display: flex;
+            gap: 15px;
+            align-self: flex-end;
+            margin-right: 30px;
+        }
+        
+        .skill {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #34495e, #2c3e50);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .skill:active {
+            transform: scale(0.95);
+        }
+        
+        .skill-cooldown {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            transition: height 0.3s;
+        }
+        
+        .basic-attack {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #e67e22, #d35400);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            align-self: flex-end;
+            margin-right: 30px;
+            position: relative;
+        }
+        
+        .basic-attack:active {
+            transform: scale(0.95);
+        }
+        
+        .game-status {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 100;
+        }
+        
+        .ability-effect {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .skill1-effect {
+            width: 20px;
+            height: 20px;
+            background-color: #3498db;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #3498db;
+            animation: dash 0.5s forwards;
+        }
+        
+        @keyframes dash {
+            from {
+                transform: scale(1);
+            }
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        .skill2-effect {
+            width: 120px;
+            height: 40px;
+            background-color: rgba(231, 76, 60, 0.5);
+            border: 2px solid #e74c3c;
+            animation: fadeOut 3s forwards;
+        }
+        
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            70% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+        
+        .skill3-effect {
+            width: 30px;
+            height: 30px;
+            background-color: #9b59b6;
+            border-radius: 50%;
+            box-shadow: 0 0 20px #9b59b6;
+            animation: jump 0.8s forwards;
+        }
+        
+        @keyframes jump {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.5);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+        
+        .skill4-effect {
+            width: 150px;
+            height: 100px;
+            clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
+            background: linear-gradient(45deg, rgba(52, 152, 219, 0.7), rgba(41, 128, 185, 0.7));
+            animation: fan 0.5s forwards;
+        }
+        
+        @keyframes fan {
+            from {
+                transform: scale(0) rotate(0deg);
+            }
+            to {
+                transform: scale(1) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .stats {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            z-index: 50;
+        }
+        
+        .stats div {
+            margin: 2px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="arena">
+            <div class="wall wall-1"></div>
+            <div class="wall wall-2"></div>
+            <div class="wall wall-3"></div>
+            
+            <div class="character player">
+                <div class="player-sprite"></div>
+                <div class="health-bar">
+                    <div class="health-fill" id="player-health"></div>
+                </div>
+            </div>
+            
+            <div class="character enemy">
+                <div class="enemy-sprite"></div>
+                <div class="health-bar">
+                    <div class="health-fill" id="enemy-health"></div>
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div>HP: <span id="player-hp-text">20000/20000</span></div>
+                <div>Skill 1: <span id="skill1-cd">0</span>s</div>
+                <div>Skill 2: <span id="skill2-cd">0</span>s</div>
+                <div>Skill 3: <span id="skill3-cd">0</span>s</div>
+                <div>Skill 4: <span id="skill4-cd">0</span>s</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="joystick-area">
+                <div class="joystick"></div>
+            </div>
+            
+            <div class="skills">
+                <div class="skill" id="skill1">
+                    <div class="skill-cooldown"></div>
+                    1
+                </div>
+                <div class="skill" id="skill2">
+                    <div class="skill-cooldown"></div>
+                    2
+                </div>
+                <div class="skill" id="skill3">
+                    <div class="skill-cooldown"></div>
+                    3
+                </div>
+                <div class="skill" id="skill4">
+                    <div class="skill-cooldown"></div>
+                    4
+                </div>
+            </div>
+            
+            <div class="basic-attack" id="basic-attack">
+                Attack
+            </div>
+        </div>
+        
+        <div class="game-status" id="game-status"></div>
+    </div>
+
+    <script src="game.js"></script>
+    <script src="player.js"></script>
+    <script src="enemy.js"></script>
+</body>
+  </html>
