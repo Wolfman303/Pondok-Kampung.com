@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" 
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mini MOBA Mobile</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Kontrol -->
+  <div class="controls">
+    <!-- Joystick -->
+    <div class="joystick" id="joystick">
+      <div class="stick" id="stick"></div>
+    </div>
+
+    <!-- Tombol -->
+    <div class="buttons">
+      <div class="skills">
+        <div class="btn" data-skill="1">S1</div>
+        <div class="btn" data-skill="2">S2</div>
+      </div>
+      <div class="skills">
+        <div class="btn" data-skill="3">S3</div>
+        <div class="btn" data-skill="4">S4</div>
+      </div>
+      <div class="btn attack">Atk</div>
+    </div>
+  </div>
+
+  <!-- Script -->
+  <script src="js/utils.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/skills.js"></script>
+  <script src="js/bot.js"></script>
+  <script src="js/arena.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
