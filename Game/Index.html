@@ -5,101 +5,9 @@
   <meta name="viewport" 
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Mini MOBA Mobile</title>
-  <style>
-    body {
-      margin: 0;
-      background: #111;
-      overflow: hidden;
-    }
-    #gameCanvas {
-      background: #333;
-      display: block;
-      margin: auto;
-      width: 100vw;
-      height: 60vh;
-    }
-
-    .controls {
-      position: fixed;
-      bottom: 10px;
-      left: 10px;
-      right: 10px;
-      height: 30vh;
-      pointer-events: none;
-    }
-
-    /* Joystick */
-    .joystick {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      width: 120px;
-      height: 120px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 50%;
-      pointer-events: auto;
-      touch-action: none;
-    }
-    .stick {
-      position: absolute;
-      left: 40px;
-      top: 40px;
-      width: 40px;
-      height: 40px;
-      background: rgba(255,255,255,0.3);
-      border-radius: 50%;
-    }
-
-    /* Tombol skill */
-    .buttons {
-      position: absolute;
-      right: 20px;
-      bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 15px;
-      pointer-events: auto;
-    }
-    .btn {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.2);
-      border: 2px solid white;
-      color: white;
-      font-weight: bold;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      touch-action: none;
-      transition: background 0.3s;
-      position: relative;
-    }
-    .btn.attack {
-      width: 80px;
-      height: 80px;
-      background: rgba(255,0,0,0.5);
-      font-size: 16px;
-    }
-    .skills {
-      display: flex;
-      gap: 10px;
-    }
-    /* Efek cooldown */
-    .btn.cooldown {
-      background: rgba(100,100,100,0.5) !important;
-    }
-    .cooldown-text {
-      position: absolute;
-      font-size: 14px;
-      color: yellow;
-    }
-  </style>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- Arena Game -->
   <canvas id="gameCanvas"></canvas>
 
   <!-- Kontrol -->
@@ -123,6 +31,13 @@
     </div>
   </div>
 
-  <script src="game.js"></script>
+  <!-- Script -->
+  <script src="js/utils.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/skills.js"></script>
+  <script src="js/bot.js"></script>
+  <script src="js/arena.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
