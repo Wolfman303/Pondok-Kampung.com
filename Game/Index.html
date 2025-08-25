@@ -2,137 +2,129 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Duel Moba: Player vs Mahoraga</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moba Duel: Player vs Mahoraga</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            touch-action: manipulation;
-            user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            color: #fff;
+            background: #0a0e17;
+            color: white;
             overflow: hidden;
-            height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-        }
-        
-        .game-container {
-            width: 100%;
-            max-width: 500px;
-            height: 100vh;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .arena {
-            width: 100%;
-            height: 70%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%2322283a"/><path d="M0,0 L100,100 M100,0 L0,100" stroke="%23314264" stroke-width="2"/></svg>');
-            position: relative;
-            border-bottom: 3px solid #4a5568;
-        }
-        
-        .wall {
-            position: absolute;
-            background-color: #4a5568;
-            border: 2px solid #2d3748;
-        }
-        
-        .wall-1 {
-            width: 80px;
-            height: 20px;
-            top: 30%;
-            left: 20%;
-        }
-        
-        .wall-2 {
-            width: 20px;
-            height: 80px;
-            top: 20%;
-            left: 60%;
-        }
-        
-        .wall-3 {
-            width: 100px;
-            height: 20px;
-            top: 60%;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .character {
-            position: absolute;
-            transition: transform 0.1s;
-            display: flex;
-            flex-direction: column;
             align-items: center;
+            height: 100vh;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 1000px;
+            height: 500px;
+            border: 3px solid #2a3250;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.3);
+        }
+        
+        #arena {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #1a2536, #0f1729);
+        }
+        
+        #player {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(to bottom, #3498db, #2980b9);
+            border-radius: 50%;
+            border: 2px solid white;
+            z-index: 10;
+            transition: transform 0.2s;
+        }
+        
+        #player::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #e74c3c;
+            border-radius: 50%;
+            top: 15px;
+            left: 15px;
+        }
+        
+        #enemy {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+            border-radius: 50%;
+            border: 2px solid #f1c40f;
             z-index: 10;
         }
         
-        .player {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(45deg, #3498db, #2980b9);
+        #enemy::before {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #2ecc71;
             border-radius: 50%;
-            border: 3px solid #1f618d;
-            box-shadow: 0 0 10px rgba(52, 152, 219, 0.7);
-        }
-        
-        .enemy {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            border-radius: 50%;
-            border: 3px solid #922b21;
-            box-shadow: 0 0 10px rgba(231, 76, 60, 0.7);
+            top: 18px;
+            left: 18px;
         }
         
         .health-bar {
-            width: 60px;
-            height: 6px;
-            background-color: #444;
-            border-radius: 3px;
-            margin-top: 5px;
+            position: absolute;
+            width: 80px;
+            height: 8px;
+            background: #555;
+            border-radius: 4px;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
             overflow: hidden;
         }
         
         .health-fill {
             height: 100%;
             background: linear-gradient(to right, #2ecc71, #27ae60);
+            width: 100%;
             transition: width 0.3s;
         }
         
-        .enemy .health-fill {
-            background: linear-gradient(to right, #e74c3c, #c0392b);
+        .wall {
+            position: absolute;
+            background: linear-gradient(to bottom, #7f8c8d, #636e72);
+            border: 2px solid #2d3436;
         }
         
         .damage-text {
             position: absolute;
-            color: #ff4757;
+            color: #ff6b6b;
             font-weight: bold;
             font-size: 14px;
             pointer-events: none;
             animation: floatUp 1s forwards;
-            z-index: 20;
+            z-index: 100;
         }
         
         .heal-text {
             position: absolute;
-            color: #2ed573;
+            color: #2ecc71;
             font-weight: bold;
             font-size: 14px;
             pointer-events: none;
             animation: floatUp 1s forwards;
-            z-index: 20;
+            z-index: 100;
         }
         
         @keyframes floatUp {
@@ -146,67 +138,67 @@
             }
         }
         
-        .controls {
+        #ui {
+            position: absolute;
+            bottom: 0;
+            left: 0;
             width: 100%;
-            height: 30%;
-            background: linear-gradient(to top, #1e1e2e, #2d3748);
+            height: 100px;
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: space-around;
-            padding: 10px;
-            border-top: 3px solid #4a5568;
+            padding: 0 20px;
         }
         
-        .joystick-area {
-            width: 120px;
-            height: 120px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
+        #joystick-container {
+            width: 100px;
+            height: 100px;
             position: relative;
-            align-self: flex-start;
-            margin-left: 30px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
         }
         
-        .joystick {
-            width: 50px;
-            height: 50px;
-            background-color: rgba(255, 255, 255, 0.8);
+        #joystick-base {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        #joystick {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.8);
             border-radius: 50%;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             transition: transform 0.1s;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
         
-        .skills {
+        #skills {
             display: flex;
             gap: 15px;
-            align-self: flex-end;
-            margin-right: 30px;
+            margin-left: 30px;
         }
         
         .skill {
             width: 60px;
             height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #34495e, #2c3e50);
+            border-radius: 10px;
+            background: linear-gradient(to bottom, #2c3e50, #1a2536);
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             color: white;
             font-weight: bold;
-            font-size: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            border: 2px solid #3498db;
+            cursor: pointer;
+            user-select: none;
             position: relative;
-            overflow: hidden;
-        }
-        
-        .skill:active {
-            transform: scale(0.95);
         }
         
         .skill-cooldown {
@@ -214,216 +206,197 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.7);
             color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-            transition: height 0.3s;
-        }
-        
-        .basic-attack {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #e67e22, #d35400);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            align-self: flex-end;
-            margin-right: 30px;
-            position: relative;
-        }
-        
-        .basic-attack:active {
-            transform: scale(0.95);
-        }
-        
-        .game-status {
-            position: absolute;
-            top: 20px;
-            left: 0;
-            right: 0;
             text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            opacity: 0;
-            transition: opacity 0.5s;
-            z-index: 100;
+            font-size: 12px;
+            display: none;
         }
         
-        .ability-effect {
+        #basic-attack {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            border: 2px solid #f1c40f;
+            cursor: pointer;
+            user-select: none;
+            margin-left: auto;
+            margin-right: 30px;
+        }
+        
+        #stats {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        #player-stats, #enemy-stats {
+            margin-bottom: 10px;
+        }
+        
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        #result-text {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #f1c40f;
+        }
+        
+        #restart-button {
+            padding: 10px 20px;
+            background: linear-gradient(to bottom, #3498db, #2980b9);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        #restart-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .skill-effect {
             position: absolute;
             pointer-events: none;
             z-index: 5;
         }
         
-        .skill1-effect {
-            width: 20px;
-            height: 20px;
-            background-color: #3498db;
-            border-radius: 50%;
-            box-shadow: 0 0 15px #3498db;
-            animation: dash 0.5s forwards;
+        .stunned {
+            animation: stunned 1s infinite;
         }
         
-        @keyframes dash {
-            from {
-                transform: scale(1);
-            }
-            to {
-                transform: scale(2);
-                opacity: 0;
-            }
+        @keyframes stunned {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
         
-        .skill2-effect {
-            width: 120px;
-            height: 40px;
-            background-color: rgba(231, 76, 60, 0.5);
-            border: 2px solid #e74c3c;
-            animation: fadeOut 3s forwards;
+        .slowed {
+            animation: slowed 3s forwards;
         }
         
-        @keyframes fadeOut {
-            0% {
-                opacity: 1;
+        @keyframes slowed {
+            0% { border-color: #f1c40f; }
+            100% { border-color: #e74c3c; }
+        }
+        
+        .frozen {
+            animation: frozen 1.5s forwards;
+        }
+        
+        @keyframes frozen {
+            0% { 
+                background: linear-gradient(to bottom, #e74c3c, #c0392b);
+                border-color: #f1c40f;
             }
-            70% {
-                opacity: 1;
-            }
-            100% {
-                opacity: 0;
+            100% { 
+                background: linear-gradient(to bottom, #3498db, #2980b9);
+                border-color: #2ecc71;
             }
         }
         
-        .skill3-effect {
-            width: 30px;
-            height: 30px;
-            background-color: #9b59b6;
-            border-radius: 50%;
-            box-shadow: 0 0 20px #9b59b6;
-            animation: jump 0.8s forwards;
+        .burning {
+            animation: burning 3s infinite;
         }
         
-        @keyframes jump {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.5);
-            }
-            100% {
-                transform: scale(1);
-                opacity: 0;
-            }
-        }
-        
-        .skill4-effect {
-            width: 150px;
-            height: 100px;
-            clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
-            background: linear-gradient(45deg, rgba(52, 152, 219, 0.7), rgba(41, 128, 185, 0.7));
-            animation: fan 0.5s forwards;
-        }
-        
-        @keyframes fan {
-            from {
-                transform: scale(0) rotate(0deg);
-            }
-            to {
-                transform: scale(1) rotate(360deg);
-                opacity: 0;
-            }
-        }
-        
-        .stats {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 12px;
-            z-index: 50;
-        }
-        
-        .stats div {
-            margin: 2px 0;
+        @keyframes burning {
+            0% { box-shadow: 0 0 10px #ff6b6b; }
+            50% { box-shadow: 0 0 20px #e74c3c; }
+            100% { box-shadow: 0 0 10px #ff6b6b; }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="arena">
-            <div class="wall wall-1"></div>
-            <div class="wall wall-2"></div>
-            <div class="wall wall-3"></div>
-            
-            <div class="character player">
-                <div class="player-sprite"></div>
+    <div id="game-container">
+        <div id="arena">
+            <div id="player">
                 <div class="health-bar">
                     <div class="health-fill" id="player-health"></div>
                 </div>
             </div>
-            
-            <div class="character enemy">
-                <div class="enemy-sprite"></div>
+            <div id="enemy">
                 <div class="health-bar">
                     <div class="health-fill" id="enemy-health"></div>
                 </div>
             </div>
-            
-            <div class="stats">
-                <div>HP: <span id="player-hp-text">20000/20000</span></div>
-                <div>Skill 1: <span id="skill1-cd">0</span>s</div>
-                <div>Skill 2: <span id="skill2-cd">0</span>s</div>
-                <div>Skill 3: <span id="skill3-cd">0</span>s</div>
-                <div>Skill 4: <span id="skill4-cd">0</span>s</div>
-            </div>
+            <!-- Walls will be generated by JavaScript -->
         </div>
         
-        <div class="controls">
-            <div class="joystick-area">
-                <div class="joystick"></div>
+        <div id="ui">
+            <div id="joystick-container">
+                <div id="joystick-base"></div>
+                <div id="joystick"></div>
             </div>
             
-            <div class="skills">
+            <div id="skills">
                 <div class="skill" id="skill1">
+                    <span>S1</span>
                     <div class="skill-cooldown"></div>
-                    1
                 </div>
                 <div class="skill" id="skill2">
+                    <span>S2</span>
                     <div class="skill-cooldown"></div>
-                    2
                 </div>
                 <div class="skill" id="skill3">
+                    <span>S3</span>
                     <div class="skill-cooldown"></div>
-                    3
                 </div>
                 <div class="skill" id="skill4">
+                    <span>S4</span>
                     <div class="skill-cooldown"></div>
-                    4
                 </div>
             </div>
             
-            <div class="basic-attack" id="basic-attack">
-                Attack
+            <div id="basic-attack">A</div>
+        </div>
+        
+        <div id="stats">
+            <div id="player-stats">
+                <div>Player HP: <span id="player-hp-text">23000</span>/23000</div>
+                <div>Status: Normal</div>
+            </div>
+            <div id="enemy-stats">
+                <div>Mahoraga HP: <span id="enemy-hp-text">80000</span>/80000</div>
+                <div>Status: Normal</div>
             </div>
         </div>
         
-        <div class="game-status" id="game-status"></div>
+        <div id="game-over">
+            <div id="result-text">Game Over</div>
+            <button id="restart-button">Main Lagi</button>
+        </div>
     </div>
 
-    <script src="Games.js"></script>
+    <script src="game.js"></script>
     <script src="player.js"></script>
     <script src="enemy.js"></script>
+    <script src="skills.js"></script>
+    <script src="ui.js"></script>
+    <script src="main.js"></script>
 </body>
-  </html>
+</html>
