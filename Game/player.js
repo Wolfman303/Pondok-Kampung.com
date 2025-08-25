@@ -1,401 +1,235 @@
-// player.js
-class Player {
-    constructor() {
-        this.x = 100;
-        this.y = 100;
-        this.speed = 200; // pixels per second
-        this.moveX = 0;
-        this.moveY = 0;
-        
-        // Stats
-        this.maxHp = 20000;
-        this.hp = this.maxHp;
-        this.physicalDefense = 0.3;
-        this.magicDefense = 0.25;
-        this.hpRegen = 50; // per 2 seconds
-        this.attackDamage = 700;
-        this.abilityPower = 100;
-        this.attackSpeed = 1.7; // attacks per second
-        this.criticalChance = 0.6;
-        this.criticalDamage = 1.5;
-        this.lifestealChance = 0.6;
-        this.lifestealPercent = 0.2;
-        
-        // Passive
-        this.passiveStacks = 0;
-        this.maxPassiveStacks = 30;
-        this.passiveActive = false;
-        this.passiveCooldown = 0;
-        this.passiveDuration = 0;
-        
-        // Attack timer
-        this.attackTimer = 0;
-        this.attackInterval = 1000 / this.attackSpeed;
-        
-        // Regen timer
-        this.regenTimer = 0;
-        this.regenInterval = 2000;
-        
-        // Skills
-        this.skills = [
-            { cooldown: 9000, currentCooldown: 0 },
-            { cooldown: 12000, currentCooldown: 0 },
-            { cooldown: 18000, currentCooldown: 0 },
-            { cooldown: 45000, currentCooldown: 0 }
-        ];
-        
-        // Skill 1 buff
-        this.skill1BuffActive = false;
-        this.skill1BuffDuration = 0;
-        
-        // Skill 3 mark
-        this.skill3Marked = false;
-        this.skill3MarkDuration = 0;
-        
-        // Skill 4 phase
-        this.skill4Phase = 1;
-        this.skill4SecondCastAvailable = false;
-        this.skill4SecondCastTimer = 0;
-    }
+// Player character
+const player = {
+    x: 100,
+    y: 250,
+    width: 50,
+    height: 50,
+    maxHp: 23000,
+    hp: 23000,
+    physicalDefense: 0.34,
+    magicDefense: 0.27,
+    hpRegen: 60,
+    attackDamage: 850,
+    abilityPower: 160,
+    attackSpeed: 1.9,
+    critChance: 0.7,
+    critDamage: 1.6,
+    lifestealChance: 0.6,
+    lifestealPercent: 0.25,
+    movementSpeed: 1.15, // 15% faster than Mahoraga
+    direction: { x: 0, y: 0 },
+    isMoving: false,
+    passiveStacks: 0,
+    passiveActive: false,
+    passiveCooldown: 0,
+    statusEffects: [],
+    lastAttackTime: 0,
+    lastHpLossTime: 0,
+    lastHpLossAmount: 0
+};
 
-    move(x, y) {
-        this.moveX = x;
-        this.moveY = y;
+// Update player state
+function updatePlayer(deltaTime) {
+    // Handle movement
+    if (player.isMoving) {
+        const speed = 200 * player.movementSpeed;
+        player.x += player.direction.x * speed * deltaTime;
+        player.y += player.direction.y * speed * deltaTime;
+        
+        // Keep player within bounds
+        player.x = Math.max(0, Math.min(GAME.WIDTH - player.width, player.x));
+        player.y = Math.max(0, Math.min(GAME.HEIGHT - player.height, player.y));
     }
+    
+    // Update position in DOM
+    const playerElement = document.getElementById('player');
+    playerElement.style.left = player.x + 'px';
+    playerElement.style.top = player.y + 'px';
+    
+    // Handle HP regeneration
+    if (performance.now() - player.lastHpLossTime > 2000) {
+        player.hp = Math.min(player.maxHp, player.hp + player.hpRegen * deltaTime / 2);
+        updateHealthBars();
+    }
+    
+    // Handle passive ability
+    updatePassiveAbility(deltaTime);
+    
+    // Handle status effects
+    updateStatusEffects(deltaTime, player);
+    
+    // Handle basic attacks
+    if (performance.now() - player.lastAttackTime > 1000 / player.attackSpeed) {
+        performBasicAttack();
+        player.lastAttackTime = performance.now();
+    }
+}
 
-    update(deltaTime, enemy) {
-        // Convert deltaTime to seconds
-        const deltaSeconds = deltaTime / 1000;
-        
-        // Movement
-        const newX = this.x + this.moveX * this.speed * deltaSeconds;
-        const newY = this.y + this.moveY * this.speed * deltaSeconds;
-        
-        // Check collision with walls
-        if (!this.checkWallCollision(newX, newY)) {
-            this.x = Math.max(0, Math.min(newX, 500 - 50)); // 500 is arena width, 50 is player size
-            this.y = Math.max(0, Math.min(newY, 700 * 0.7 - 50)); // 70% of 700px is arena height
+// Update passive ability
+function updatePassiveAbility(deltaTime) {
+    if (player.passiveCooldown > 0) {
+        player.passiveCooldown -= deltaTime;
+        if (player.passiveCooldown <= 0) {
+            player.passiveActive = false;
+            player.passiveStacks = 0;
         }
+    }
+    
+    // Check if we should add stacks based on HP loss
+    if (performance.now() - player.lastHpLossTime < 3000 && player.lastHpLossAmount > 0) {
+        const hpLossPercent = player.lastHpLossAmount / player.maxHp;
+        const newStacks = Math.min(30, Math.floor(hpLossPercent / 0.02));
         
-        // Auto attack
-        this.attackTimer += deltaTime;
-        if (this.attackTimer >= this.attackInterval) {
-            this.attackTimer = 0;
-            this.basicAttack(enemy);
-        }
-        
-        // HP regen
-        this.regenTimer += deltaTime;
-        if (this.regenTimer >= this.regenInterval) {
-            this.regenTimer = 0;
-            this.hp = Math.min(this.maxHp, this.hp + this.hpRegen);
-        }
-        
-        // Update skill cooldowns
-        this.skills.forEach(skill => {
-            if (skill.currentCooldown > 0) {
-                skill.currentCooldown -= deltaTime;
-            }
-        });
-        
-        // Update passive
-        this.updatePassive(deltaTime);
-        
-        // Update skill buffs
-        if (this.skill1BuffActive) {
-            this.skill1BuffDuration -= deltaTime;
-            if (this.skill1BuffDuration <= 0) {
-                this.skill1BuffActive = false;
-            }
-        }
-        
-        if (this.skill3Marked) {
-            this.skill3MarkDuration -= deltaTime;
-            if (this.skill3MarkDuration <= 0) {
-                this.skill3Marked = false;
-            }
-        }
-        
-        if (this.skill4SecondCastAvailable) {
-            this.skill4SecondCastTimer -= deltaTime;
-            if (this.skill4SecondCastTimer <= 0) {
-                this.skill4SecondCastAvailable = false;
-                this.skill4Phase = 1;
+        if (newStacks > player.passiveStacks) {
+            player.passiveStacks = newStacks;
+            
+            if (player.passiveStacks >= 30) {
+                player.passiveActive = true;
+                player.attackSpeed += 0.2;
+                player.movementSpeed += 0.2;
+                player.lifestealChance += 0.2;
+                player.passiveCooldown = 12;
+                
+                // Reset after 5 seconds
+                setTimeout(() => {
+                    player.attackSpeed -= 0.2;
+                    player.movementSpeed -= 0.2;
+                    player.lifestealChance -= 0.2;
+                }, 5000);
             }
         }
     }
+}
 
-    updatePassive(deltaTime) {
-        // Calculate lost HP percentage
-        const lostHpPercent = (this.maxHp - this.hp) / this.maxHp * 100;
-        const newStacks = Math.min(this.maxPassiveStacks, Math.floor(lostHpPercent / 2));
-        
-        if (newStacks > this.passiveStacks) {
-            this.passiveStacks = newStacks;
-        }
-        
-        // Handle passive cooldown and activation
-        if (this.passiveActive) {
-            this.passiveDuration -= deltaTime;
-            if (this.passiveDuration <= 0) {
-                this.passiveActive = false;
-                this.passiveCooldown = 15000; // 15 seconds cooldown
-            }
-        } else if (this.passiveCooldown > 0) {
-            this.passiveCooldown -= deltaTime;
-        } else if (this.passiveStacks >= this.maxPassiveStacks) {
-            this.passiveActive = true;
-            this.passiveDuration = 5000; // 5 seconds duration
-        }
-    }
-
-    basicAttack(target) {
-        if (!target || target.hp <= 0) return;
-        
-        // Calculate distance to target
-        const distance = Math.sqrt(Math.pow(this.x - target.x, 2) + Math.pow(this.y - target.y, 2));
-        
-        // Check if target is in range (80 pixels)
-        if (distance > 80) return;
-        
+// Perform basic attack
+function performBasicAttack() {
+    // Check if enemy is in range
+    const dx = enemy.x - player.x;
+    const dy = enemy.y - player.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const attackRange = 80; // Melee range
+    
+    if (distance < attackRange) {
         // Calculate damage
-        let damage = this.attackDamage;
-        const isCritical = Math.random() < this.criticalChance;
+        let damage = player.attackDamage;
+        let isCritical = Math.random() < player.critChance;
         
         if (isCritical) {
-            damage *= this.criticalDamage;
+            damage *= player.critDamage;
         }
         
-        // Apply damage reduction
-        damage *= (1 - target.physicalDefense);
+        // Apply damage to enemy
+        const actualDamage = applyDamage(enemy, damage, 'physical');
+        createDamageText(enemy.x, enemy.y - 30, actualDamage, isCritical);
         
-        // Deal damage
-        target.takeDamage(Math.floor(damage), 'physical');
-        
-        // Show damage text
-        game.showDamage(target.x + 25, target.y + 60, Math.floor(damage), isCritical);
-        
-        // Lifesteal
-        if (Math.random() < (this.passiveActive ? this.lifestealChance * 1.2 : this.lifestealChance)) {
-            const healAmount = Math.floor(damage * this.lifestealPercent);
-            this.hp = Math.min(this.maxHp, this.hp + healAmount);
-            game.showDamage(this.x + 25, this.y + 60, healAmount, false, true);
-        }
-        
-        // Double attack chance from skill 1
-        if (this.skill1BuffActive && Math.random() < 0.4) {
-            setTimeout(() => {
-                let doubleDamage = this.attackDamage;
-                const isDoubleCritical = Math.random() < this.criticalChance;
-                
-                if (isDoubleCritical) {
-                    doubleDamage *= this.criticalDamage;
-                }
-                
-                doubleDamage *= (1 - target.physicalDefense);
-                
-                target.takeDamage(Math.floor(doubleDamage), 'physical');
-                game.showDamage(target.x + 25, target.y + 60, Math.floor(doubleDamage), isDoubleCritical);
-                
-                // Lifesteal for double attack
-                if (Math.random() < (this.passiveActive ? this.lifestealChance * 1.2 : this.lifestealChance)) {
-                    const doubleHealAmount = Math.floor(doubleDamage * this.lifestealPercent);
-                    this.hp = Math.min(this.maxHp, this.hp + doubleHealAmount);
-                    game.showDamage(this.x + 25, this.y + 60, doubleHealAmount, false, true);
-                }
-            }, 200);
+        // Check for lifesteal
+        if (Math.random() < player.lifestealChance) {
+            const healAmount = actualDamage * player.lifestealPercent;
+            player.hp = Math.min(player.maxHp, player.hp + healAmount);
+            createDamageText(player.x, player.y - 30, healAmount, false, true);
+            updateHealthBars();
         }
     }
+}
 
-    useSkill(skillNumber, target) {
-        const skillIndex = skillNumber - 1;
+// Apply damage to a target with defense calculation
+function applyDamage(target, damage, type) {
+    let defense = 0;
+    
+    if (type === 'physical') {
+        defense = target.physicalDefense;
+        // Apply player passive damage reduction if active
+        if (target === enemy && player.passiveActive) {
+            defense += player.passiveStacks * 0.01;
+        }
+    } else if (type === 'magic') {
+        defense = target.magicDefense;
+        // Apply player passive damage reduction if active
+        if (target === enemy && player.passiveActive) {
+            defense += player.passiveStacks * 0.005;
+        }
+    }
+    
+    const actualDamage = damage * (1 - defense);
+    target.hp -= actualDamage;
+    
+    // Record HP loss for passive ability
+    if (target === player) {
+        player.lastHpLossAmount += actualDamage;
+        player.lastHpLossTime = performance.now();
+    }
+    
+    updateHealthBars();
+    return actualDamage;
+}
+
+// Update status effects
+function updateStatusEffects(deltaTime, character) {
+    for (let i = character.statusEffects.length - 1; i >= 0; i--) {
+        const effect = character.statusEffects[i];
+        effect.duration -= deltaTime;
         
-        // Check if skill is on cooldown
-        if (this.skills[skillIndex].currentCooldown > 0) return;
-        
-        // Check if target exists and is alive
-        if (!target || target.hp <= 0) return;
-        
-        // Calculate distance to target
-        const distance = Math.sqrt(Math.pow(this.x - target.x, 2) + Math.pow(this.y - target.y, 2));
-        
-        // Use the selected skill
-        switch (skillNumber) {
-            case 1:
-                // Skill 1: Dash to target, stun, and deal damage
-                if (distance > 200) return; // Maximum dash range
-                
-                // Move to target
-                this.x = target.x + 50;
-                this.y = target.y;
-                
-                // Stun target (simplified as no action for 0.8s)
-                // In a real game, we would have a stun mechanism
-                
-                // Deal damage
-                const skill1Damage = 650 + (0.6 * this.attackDamage) + (0.8 * this.abilityPower);
-                target.takeDamage(Math.floor(skill1Damage * (1 - target.magicDefense)), 'magic');
-                game.showDamage(target.x + 25, target.y + 60, Math.floor(skill1Damage * (1 - target.magicDefense)), false);
-                
-                // Apply buff
-                this.skill1BuffActive = true;
-                this.skill1BuffDuration = 4000;
-                
-                // Show effect
-                game.showAbilityEffect(target.x, target.y, 'skill1-effect');
-                
-                // Set cooldown
-                this.skills[skillIndex].currentCooldown = this.skills[skillIndex].cooldown;
-                break;
-                
-            case 2:
-                // Skill 2: Area damage and slow
-                // In a real game, we would have an area targeting system
-                // For simplicity, we'll just damage the target if in range
-                if (distance > 150) return;
-                
-                // Initial damage
-                const skill2InitialDamage = 700 + this.attackDamage;
-                target.takeDamage(Math.floor(skill2InitialDamage * (1 - target.physicalDefense)), 'physical');
-                game.showDamage(target.x + 25, target.y + 60, Math.floor(skill2InitialDamage * (1 - target.physicalDefense)), false);
-                
-                // Show effect
-                game.showAbilityEffect(target.x, target.y, 'skill2-effect');
-                
-                // DoT effect (simplified as instant additional damage)
-                const skill2DotDamage = (80 + (0.2 * this.attackDamage) + (0.2 * this.abilityPower)) * 5;
-                target.takeDamage(Math.floor(skill2DotDamage * (1 - target.physicalDefense)), 'physical');
-                
-                // Set cooldown
-                this.skills[skillIndex].currentCooldown = this.skills[skillIndex].cooldown;
-                break;
-                
-            case 3:
-                // Skill 3: Jump to target and deal true damage
-                if (distance > 150) return;
-                
-                // Move to target
-                this.x = target.x;
-                this.y = target.y;
-                
-                // Deal damage
-                let skill3Damage = 1000 + (0.85 * this.attackDamage) + (0.05 * target.maxHp);
-                
-                if (!target.skill3Marked) {
-                    // Reset cooldown if target doesn't have mark
-                    this.skills[skillIndex].currentCooldown = 0;
-                    target.skill3Marked = true;
-                    target.skill3MarkDuration = 4000;
+        if (effect.duration <= 0) {
+            // Remove effect
+            character.statusEffects.splice(i, 1);
+            
+            // Remove visual effect
+            const element = document.getElementById(character === player ? 'player' : 'enemy');
+            element.classList.remove(effect.type);
+            
+            // Reset any stat modifications
+            if (effect.type === 'stunned') {
+                // Resume normal activity
+            } else if (effect.type === 'slowed') {
+                if (character === player) {
+                    player.movementSpeed /= 0.75;
                 } else {
-                    // Set cooldown normally
-                    this.skills[skillIndex].currentCooldown = this.skills[skillIndex].cooldown;
+                    enemy.movementSpeed /= 0.6;
                 }
-                
-                target.takeDamage(Math.floor(skill3Damage), 'true');
-                game.showDamage(target.x + 25, target.y + 60, Math.floor(skill3Damage), false);
-                
-                // Show effect
-                game.showAbilityEffect(target.x, target.y, 'skill3-effect');
-                break;
-                
-            case 4:
-                // Skill 4: Two-phase area attack
-                if (this.skill4Phase === 1) {
-                    // First phase: Freeze
-                    if (distance > 200) return;
-                    
-                    const skill4FirstDamage = 1200 + (1.2 * this.abilityPower);
-                    target.takeDamage(Math.floor(skill4FirstDamage * (1 - target.magicDefense)), 'magic');
-                    game.showDamage(target.x + 25, target.y + 60, Math.floor(skill4FirstDamage * (1 - target.magicDefense)), false);
-                    
-                    // Show effect
-                    game.showAbilityEffect(target.x, target.y, 'skill4-effect');
-                    
-                    // Enable second phase
-                    this.skill4SecondCastAvailable = true;
-                    this.skill4SecondCastTimer = 6000;
-                    this.skill4Phase = 2;
-                    
-                    // Don't set cooldown yet, wait for second phase
-                } else if (this.skill4Phase === 2 && this.skill4SecondCastAvailable) {
-                    // Second phase: Burn
-                    if (distance > 200) return;
-                    
-                    let skill4SecondDamage = 1800 + (1.5 * this.attackDamage);
-                    
-                    // If target was frozen, convert to true damage
-                    // For simplicity, we'll just check if we recently used phase 1
-                    if (this.skill4SecondCastTimer > 0) {
-                        skill4SecondDamage = Math.floor(skill4SecondDamage);
-                    } else {
-                        skill4SecondDamage = Math.floor(skill4SecondDamage * (1 - target.physicalDefense));
-                    }
-                    
-                    target.takeDamage(skill4SecondDamage, this.skill4SecondCastTimer > 0 ? 'true' : 'physical');
-                    game.showDamage(target.x + 25, target.y + 60, skill4SecondDamage, false);
-                    
-                    // Burn DoT (simplified as instant additional damage)
-                    const burnDamage = (0.015 * target.maxHp) * 6; // 1.5% max HP per 0.5s for 3s = 6 ticks
-                    target.takeDamage(Math.floor(burnDamage), 'true');
-                    
-                    // Set cooldown
-                    this.skills[skillIndex].currentCooldown = this.skills[skillIndex].cooldown;
-                    this.skill4SecondCastAvailable = false;
-                    this.skill4Phase = 1;
-                }
-                break;
+            } else if (effect.type === 'frozen') {
+                // Resume normal activity
+            } else if (effect.type === 'burning') {
+                // Stop damage over time
+            }
+        } else if (effect.type === 'burning') {
+            // Apply damage over time
+            if (effect.lastTickTime === undefined || performance.now() - effect.lastTickTime > 500) {
+                const burnDamage = character.maxHp * 0.015;
+                character.hp -= burnDamage;
+                createDamageText(character.x, character.y - 30, burnDamage, false);
+                effect.lastTickTime = performance.now();
+                updateHealthBars();
+            }
         }
     }
+}
 
-    takeDamage(amount, type) {
-        let damageTaken = amount;
+// Apply status effect to character
+function applyStatusEffect(character, type, duration) {
+    // Check if effect already exists
+    const existingEffect = character.statusEffects.find(effect => effect.type === type);
+    
+    if (existingEffect) {
+        // Refresh duration
+        existingEffect.duration = duration;
+    } else {
+        // Add new effect
+        character.statusEffects.push({
+            type: type,
+            duration: duration
+        });
         
-        // Apply damage reduction based on type
-        if (type === 'physical') {
-            damageTaken *= (1 - this.physicalDefense);
-            
-            // Apply passive damage reduction
-            if (this.passiveStacks > 0) {
-                damageTaken *= (1 - (0.01 * this.passiveStacks));
-            }
-        } else if (type === 'magic') {
-            damageTaken *= (1 - this.magicDefense);
-            
-            // Apply passive damage reduction
-            if (this.passiveStacks > 0) {
-                damageTaken *= (1 - (0.005 * this.passiveStacks));
+        // Apply visual effect
+        const element = document.getElementById(character === player ? 'player' : 'enemy');
+        element.classList.add(type);
+        
+        // Apply stat modifications
+        if (type === 'slowed') {
+            if (character === player) {
+                player.movementSpeed *= 0.75;
+            } else {
+                enemy.movementSpeed *= 0.6;
             }
         }
-        // True damage is not reduced
-        
-        this.hp -= Math.floor(damageTaken);
-        
-        // Ensure HP doesn't go below 0
-        this.hp = Math.max(0, this.hp);
     }
-
-    checkWallCollision(x, y) {
-        // Simplified collision detection with walls
-        const walls = document.querySelectorAll('.wall');
-        const playerSize = 50;
-        
-        for (const wall of walls) {
-            const wallRect = wall.getBoundingClientRect();
-            const arenaRect = document.querySelector('.arena').getBoundingClientRect();
-            
-            const wallX = wallRect.left - arenaRect.left;
-            const wallY = arenaRect.bottom - wallRect.bottom; // Convert to bottom-based coordinates
-            const wallWidth = wallRect.width;
-            const wallHeight = wallRect.height;
-            
-            if (x < wallX + wallWidth &&
-                x + playerSize > wallX &&
-                y < wallY + wallHeight &&
-                y + playerSize > wallY) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-        }
+}
